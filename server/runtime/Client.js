@@ -1,0 +1,81 @@
+'use strict'
+
+const wlServerCore = require('./fastcall/wayland-server-core-native')
+const Listener = require('./Listener')
+const Resource = require('./Resource')
+const Display = require('./Display')
+
+module.exports = class Client {
+  /**
+   *
+   * @param {Display} display
+   * @param {number}fd
+   */
+  static create (display, fd) {
+    const clientPtr = wlServerCore.interface.wl_client_create(display.ptr, fd)
+    return new Client(clientPtr)
+  }
+
+  constructor (ptr) {
+    this.ptr = ptr
+  }
+
+  destroy () {
+    wlServerCore.interface.wl_client_destroy(this.ptr)
+  }
+
+//  lib.function('wl_list *wl_client_get_link(wl_client *client)')
+//  lib.function('wl_client *wl_client_from_link(wl_list *link)')
+
+  flush () {
+    wlServerCore.interface.wl_client_flush(this.ptr)
+  }
+
+// lib.function('void wl_client_get_credentials(wl_client *client, pid_t *pid, uid_t *uid, gid_t *gid)')
+
+  /**
+   *
+   * @returns {number}
+   */
+  getFd () {
+    return wlServerCore.interface.wl_client_get_fd(this.ptr)
+  }
+
+  /**
+   *
+   * @param {Listener} listener
+   */
+  addDestroyListener (listener) {
+    wlServerCore.interface.wl_client_add_destroy_listener(this.ptr, listener.ptr)
+  }
+
+  getDestroyListener (notify) {
+    const listenerPtr = wlServerCore.interface.wl_client_get_destroy_listener(this.ptr, notify)
+    return new Listener(listenerPtr)
+  }
+
+  /**
+   *
+   * @param {number}id
+   */
+  getObject (id) {
+    const resourcePtr = wlServerCore.interface.wl_client_get_object(this.ptr, id)
+    return new Resource(resourcePtr)
+  }
+
+  noMemory () {
+    wlServerCore.interface.wl_client_post_no_memory(this.ptr)
+  }
+
+  addResourceCreatedListener (listener) {
+    wlServerCore.interface.wl_client_add_resource_created_listener(this.ptr, listener.ptr)
+  }
+
+  /**
+   * @returns {Display}
+   */
+  getDisplay () {
+    const displayPtr = wlServerCore.interface.wl_client_get_display(this.ptr)
+    return new Display(displayPtr)
+  }
+}
