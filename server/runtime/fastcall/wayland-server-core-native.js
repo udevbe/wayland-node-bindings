@@ -6,14 +6,16 @@ const Library = fastcall.Library
 const lib = new Library('libwayland-server.so.0')
 
 // util
-lib.struct('struct wl_interface { char *name; int version; int method_count; void *methods; int event_count; void *events; }')
-lib.struct('struct wl_message { char *name; char *signature; wl_interface **types; }')
 lib.struct('struct wl_list { void *prev; void *next; }')
 lib.struct('struct wl_object {}')
 lib.struct('struct wl_array { size_t size; size_t alloc; void *data; }')
 lib.union('union wl_argument { int32 i; uint32 u; uint32 f; char *s; wl_object *o; uint32 n; wl_array *a; int32 h; }')
+lib.array('wl_argument[] ArgsArray')
+lib.struct('struct wl_message { char *name; char *signature; void **types; }')
+lib.array('wl_message[] MessageArray')
+lib.struct('struct wl_interface { char *name; int version; int method_count; MessageArray methods; int event_count; MessageArray events; }')
 
-lib.declare('int (*wl_dispatcher_func_t)(void *impl, void *object, uint32 opcode, wl_message *signature, wl_argument *args)')
+lib.declare('int (*wl_dispatcher_func_t)(void *impl, void *object, uint32 opcode, wl_message *signature, ArgsArray args)')
 
 lib.function('void wl_list_init(wl_list *list)')
 lib.function('void wl_array_init(wl_array *array)')
@@ -103,8 +105,8 @@ lib.function('void *wl_global_get_user_data(wl_global *global)')
 
 // wl_resource
 lib.declare('void (*wl_resource_destroy_func_t)(wl_resource *resource)')
-lib.function('void wl_resource_post_event_array(wl_resource *resource, uint32 opcode, wl_argument *args)')
-lib.function('void wl_resource_queue_event_array(wl_resource *resource, uint32 opcode, wl_argument *args)')
+lib.function('void wl_resource_post_event_array(wl_resource *resource, uint32 opcode, ArgsArray args)')
+lib.function('void wl_resource_queue_event_array(wl_resource *resource, uint32 opcode, ArgsArray args)')
 lib.function('void wl_resource_post_error(wl_resource *resource, uint32 code, char *msg)')
 lib.function('void wl_resource_post_no_memory(wl_resource *resource)')
 lib.function('wl_resource * wl_resource_create(wl_client *client, wl_interface *interface, int version, uint32 id)')

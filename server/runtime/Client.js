@@ -1,9 +1,11 @@
 'use strict'
 
 const wlServerCore = require('./fastcall/wayland-server-core-native')
+
 const Listener = require('./Listener')
 const Resource = require('./Resource')
 const Display = require('./Display')
+const List = require('./List')
 
 module.exports = class Client {
   /**
@@ -16,6 +18,15 @@ module.exports = class Client {
     return new Client(clientPtr)
   }
 
+  /**
+   *
+   * @param {List} list
+   */
+  static fromLink (list) {
+    const clientPtr = wlServerCore.interface.wl_client_from_link(link.ptr)
+    return new Client(clientPtr)
+  }
+
   constructor (ptr) {
     this.ptr = ptr
   }
@@ -24,8 +35,13 @@ module.exports = class Client {
     wlServerCore.interface.wl_client_destroy(this.ptr)
   }
 
-//  lib.function('wl_list *wl_client_get_link(wl_client *client)')
-//  lib.function('wl_client *wl_client_from_link(wl_list *link)')
+  /**
+   * @returns {List}
+   */
+  getLink () {
+    const listPtr = wlServerCore.interface.wl_client_get_link(this.ptr)
+    return new List(listPtr)
+  }
 
   flush () {
     wlServerCore.interface.wl_client_flush(this.ptr)
