@@ -1,19 +1,12 @@
 'use strict'
 
 const wlServerCore = require('./fastcall/wayland-server-core-native')
-const WlList = wlServerCore.structs.wl_list.type
 
 module.exports = class List {
-  static forEach (head, getMemberFunc, getLinkFunc, doFunc) {
-    for (let pos = getMemberFunc(head.next()); getLinkFunc(pos).ptr.address() !== head.ptr.address(); pos = getMemberFunc(getLinkFunc(pos).next())) {
-      doFunc(pos)
+  static * forEach (head, getMember, getLink) {
+    for (let pos = getMember(head.next()); getLink(pos).ptr.address() !== head.ptr.address(); pos = getMember(getLink(pos).next())) {
+      yield pos
     }
-  }
-
-  static create () {
-    const listPtr = new WlList({prev: null, next: null}).ref()
-    wlServerCore.interface.functions.wl_list_init(listPtr)
-    return new List(listPtr)
   }
 
   constructor (ptr) {
