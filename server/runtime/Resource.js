@@ -81,9 +81,14 @@ module.exports = class Resource {
 
   setDispatcher (dispatcher, implementation, destroy) {
     this._dispatcherPtr = wlServerCore.interface.wl_dispatcher_func_t(dispatcher)
-    this.data = ref.alloc('Object')
-    this.data.writeObject(implementation, 0)
-    wlServerCore.interface.wl_resource_set_dispatcher(this.ptr, this._dispatcherPtr, null, this.data, destroy)
+    this.implementation = implementation
+    const implPtr = ref.alloc('Object').writeObject(implementation, 0)
+    const dataPtr = ref.alloc('Object').writeObject(this, 0)
+    wlServerCore.interface.wl_resource_set_dispatcher(this.ptr, this._dispatcherPtr, implPtr, dataPtr, destroy)
+  }
+
+  getUserData () {
+    return wlServerCore.interface.wl_resource_get_user_data(this.ptr)
   }
 
   destroy () {
