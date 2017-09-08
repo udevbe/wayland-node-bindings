@@ -23,7 +23,7 @@ module.exports = class Client {
    * @param {List} list
    */
   static fromLink (list) {
-    const clientPtr = wlServerCore.interface.wl_client_from_link(link.ptr)
+    const clientPtr = wlServerCore.interface.wl_client_from_link(list.ptr)
     return new Client(clientPtr)
   }
 
