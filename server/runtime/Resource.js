@@ -8,7 +8,7 @@ const wlServerCore = require('./fastcall/wayland-server-core-native')
 const List = require('./List')
 const Client = require('./Client')
 
-module.exports = class Resource {
+class Resource {
   /**
    *
    * @param {Client}client
@@ -145,3 +145,6 @@ module.exports = class Resource {
     wlServerCore.interface.wl_resource_add_destroy_listener(this.ptr, listener.ptr)
   }
 }
+
+require('namespace').wl_resource = Resource
+module.exports = Resource

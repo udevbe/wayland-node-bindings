@@ -7,7 +7,7 @@ const Resource = require('./Resource')
 const Display = require('./Display')
 const List = require('./List')
 
-module.exports = class Client {
+class Client {
   /**
    *
    * @param {Display} display
@@ -95,3 +95,6 @@ module.exports = class Client {
     return new Display(displayPtr)
   }
 }
+
+require('./namespace').wl_client = Client
+module.exports = Client

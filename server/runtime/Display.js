@@ -4,11 +4,12 @@ const fastcall = require('fastcall')
 const ref = fastcall.ref
 
 const wlServerCore = require('./fastcall/wayland-server-core-native')
+
 const EventLoop = require('./EventLoop')
 const Listener = require('./EventLoop')
 const List = require('./List')
 
-module.exports = class Display {
+class Display {
   static create () {
     const ptr = wlServerCore.interface.wl_display_create()
     return new Display(ptr)
@@ -130,3 +131,6 @@ module.exports = class Display {
     return wlServerCore.interface.wl_display_add_shm_format(this.ptr, format)
   }
 }
+
+require('./namespace').wl_display = Display
+module.exports = Display

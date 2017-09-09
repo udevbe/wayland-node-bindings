@@ -4,7 +4,7 @@ const wlServerCore = require('./fastcall/wayland-server-core-native')
 const EventSource = require('./EventSource')
 const Listener = require('./Listener')
 
-module.exports = class EventLoop {
+class EventLoop {
   static create () {
     const ptr = wlServerCore.interface.wl_event_loop_create()
     return new EventLoop(ptr)
@@ -59,3 +59,6 @@ module.exports = class EventLoop {
     return new Listener(listenerPtr)
   }
 }
+
+require('./namespace').wl_event_loop = EventLoop
+module.exports = EventLoop

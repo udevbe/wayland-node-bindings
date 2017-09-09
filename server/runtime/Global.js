@@ -2,7 +2,7 @@
 
 const wlServerCore = require('./fastcall/wayland-server-core-native')
 
-module.exports = class Global {
+class Global {
   constructor (display, interface_, version, data, bind) {
     this.ptr = wlServerCore.interface.wl_global_create(display.ptr, interface_.ptr, version, data, bind)
   }
@@ -19,3 +19,6 @@ module.exports = class Global {
     wlServerCore.interface.wl_global_get_user_data(this.ptr)
   }
 }
+
+require('./namespace').wl_global = Global
+module.exports = Global

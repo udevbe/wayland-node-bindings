@@ -2,7 +2,7 @@
 
 const wlServerCore = require('./fastcall/wayland-server-core-native')
 
-module.exports = class List {
+class List {
   static * forEach (head, getMember, getLink) {
     for (let pos = getMember(head.next()); getLink(pos).ptr.address() !== head.ptr.address(); pos = getMember(getLink(pos).next())) {
       yield pos
@@ -23,3 +23,6 @@ module.exports = class List {
     return new List(this.wlList.next)
   }
 }
+
+require('./namespace').wl_list = List
+module.exports = List

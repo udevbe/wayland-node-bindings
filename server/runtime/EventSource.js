@@ -2,7 +2,7 @@
 
 const wlServerCore = require('./fastcall/wayland-server-core-native')
 
-module.exports = class EventSource {
+class EventSource {
   constructor (ptr) {
     this.ptr = ptr
   }
@@ -35,3 +35,6 @@ module.exports = class EventSource {
     wlServerCore.interface.wl_event_source_check(this.ptr)
   }
 }
+
+require('./namespace').wl_event_source = EventSource
+module.exports = EventSource

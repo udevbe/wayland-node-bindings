@@ -3,7 +3,7 @@
 const wlServerCore = require('./fastcall/wayland-server-core-native')
 const WlListener = wlServerCore.structs.wl_listener.type
 
-module.exports = class Listener {
+class Listener {
   static create (func) {
     const struct = new WlListener({
       link: null,
@@ -16,3 +16,6 @@ module.exports = class Listener {
     this.ptr = ptr
   }
 }
+
+require('./namespace').wl_listener = Listener
+module.exports = Listener

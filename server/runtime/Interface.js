@@ -5,7 +5,7 @@ const fastcall = require('fastcall')
 const wlServerCore = require('./fastcall/wayland-server-core-native')
 const WlInterface = wlServerCore.structs.wl_interface.type
 
-module.exports = class Interface {
+class Interface {
   static create (name, version, methods, events) {
     const interfacePtr = new WlInterface({
       name: fastcall.makeStringBuffer(name),
@@ -22,3 +22,6 @@ module.exports = class Interface {
     this.ptr = ptr
   }
 }
+
+require('./namespace').wl_interface = Interface
+module.exports = Interface
