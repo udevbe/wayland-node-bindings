@@ -170,8 +170,8 @@ wfg.ProtocolParser = class {
       let firstArg = true
       args.forEach((arg) => {
         const argType = arg.$.type
-        const argItfName = arg.$.interface
-        if (argType === 'object') {
+        if (argType === 'object' && arg.$.hasOwnProperty('interface')) {
+          const argItfName = arg.$.interface
           requires.push(util.format('const %s = require(\'%s\')\n', argItfName, argItfName))
           body.push(util.format('      %s.interface.ptr', argItfName))
         } else {
@@ -187,11 +187,6 @@ wfg.ProtocolParser = class {
   }
 
   _parseItfReqDef (requires, body, itfRequest, opcode, itfVersion) {
-    const sinceVersion = itfRequest.$.hasOwnProperty('since') ? parseInt(itfRequest.$.since) : 1
-    if (sinceVersion !== itfVersion) {
-      return
-    }
-
     const eventName = itfRequest.$.name
 
     body.push('  new WlMessage({\n')
@@ -201,14 +196,10 @@ wfg.ProtocolParser = class {
     // TODO add types to requires from args
     this._parseMessageTypes(requires, body, itfRequest)
     body.push('    ]\n')
-    body.push('  })\n')
+    body.push('  })')
   }
 
   _parseItfEventDef (requires, body, itfEvent, opcode, itfVersion) {
-    const sinceVersion = itfEvent.$.hasOwnProperty('since') ? parseInt(itfEvent.$.since) : 1
-    if (sinceVersion !== itfVersion) {
-      return
-    }
 
     const eventName = itfEvent.$.name
 
@@ -219,7 +210,7 @@ wfg.ProtocolParser = class {
     // TODO add types to requires from args
     this._parseMessageTypes(requires, body, itfEvent)
     body.push('    ]\n')
-    body.push('  })\n')
+    body.push('  })')
   }
 
   _parseItfEvent (requires, body, itfEvent, opcode, itfVersion) {
@@ -312,8 +303,6 @@ wfg.ProtocolParser = class {
 
   _parseInterface (protocolItf, copyright) {
     const copyrights = []
-    const requires = []
-    const body = []
 
     // copyright
     copyrights.push('/*\n')
@@ -323,14 +312,6 @@ wfg.ProtocolParser = class {
       })
     })
     copyrights.push(' */\n')
-
-    requires.push('const wsb = require(\'wayland-server-bindings\')\n')
-    requires.push('const ns = wsb.ns\n')
-    requires.push('const native = wsb.native\n')
-    requires.push('const Dispatcher = wsb.Dispatcher\n')
-    requires.push('const Resource = wsb.Resource\n')
-    requires.push('const Interface = wsb.Interface\n')
-    requires.push('const WlMessage = wsb.WlMessage\n')
 
     const itfName = protocolItf.$.name
     let itfVersion = 1
@@ -386,6 +367,16 @@ wfg.ProtocolParser = class {
     }
 
     for (let i = 1; i <= itfVersion; i++) {
+      const body = []
+      const requires = []
+      requires.push('const wsb = require(\'wayland-server-bindings\')\n')
+      requires.push('const ns = wsb.ns\n')
+      requires.push('const native = wsb.native\n')
+      requires.push('const Dispatcher = wsb.Dispatcher\n')
+      requires.push('const Resource = wsb.Resource\n')
+      requires.push('const Interface = wsb.Interface\n')
+      requires.push('const WlMessage = wsb.WlMessage\n')
+
       // class docs
       const description = protocolItf.description
       if (description) {
@@ -413,7 +404,7 @@ wfg.ProtocolParser = class {
           extension = util.format('%sV%d', itfName, i - 1)
         }
         body.push(util.format('class %s extends %s {\n', className, extension))
-        requires.push(util.format('const %s = require(\'%s\')\n'), extension, extension)
+        requires.push(util.format('const %s = require(\'%s\')\n', extension, extension))
       }
 
       // create
@@ -443,18 +434,34 @@ wfg.ProtocolParser = class {
       body.push(util.format('%s.name = \'%s\'\n\n', className, itfName))
 
       // wayland interface declarations
-      body.push(util.format('%s.interface_ = Interface.create(\'%s\', %d, [\n', itfName, itfName, itfVersion))
+      body.push(util.format('%s.interface_ = Interface.create(\'%s\', %d, [\n', itfName, itfName, i))
       if (protocolItf.hasOwnProperty('request')) {
         const itfRequests = protocolItf.request
         for (let j = 0; j < itfRequests.length; j++) {
+          const sinceVersion = itfRequests[j].$.hasOwnProperty('since') ? parseInt(itfRequests[j].$.since) : 1
+          if (sinceVersion > i) {
+            continue
+          }
+
+          if (j > 0) {
+            body.push(',\n')
+          }
           this._parseItfReqDef(requires, body, itfRequests[j], j, i)
         }
       }
 
-      body.push('], [\n')
+      body.push('\n], [\n')
       if (protocolItf.hasOwnProperty('event')) {
         const itfEvents = protocolItf.event
         for (let j = 0; j < itfEvents.length; j++) {
+          const sinceVersion = itfEvents[j].$.hasOwnProperty('since') ? parseInt(itfEvents[j].$.since) : 1
+          if (sinceVersion > i) {
+            continue
+          }
+
+          if (j > 0) {
+            body.push(',\n')
+          }
           this._parseItfEventDef(requires, body, itfEvents[j], j, i)
         }
       }
