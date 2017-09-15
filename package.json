@@ -1,6 +1,0 @@
-{
-  "name": "wayland-node-bindings-test",
-  "dependencies": {
-    "fastcall": "file:server/runtime"
-  }
-}
