@@ -1,0 +1,36 @@
+{
+  "name": "wayland-server-bindings",
+  "version": "1.0.0",
+  "description": "Wayland server bindings for Node.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "files": [
+    "./src"
+  ],
+  "main": "index.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Zubnix/wayland-node-bindings.git"
+  },
+  "keywords": [
+    "wayland",
+    "node",
+    "node.js",
+    "bindings",
+    "server"
+  ],
+  "author": "Erik De Rijcke",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/Zubnix/wayland-node-bindings/issues"
+  },
+  "homepage": "https://github.com/Zubnix/wayland-node-bindings#readme",
+  "devDependencies": {
+    "standard": "^10.0.3"
+  },
+  "dependencies": {
+    "fastcall": "^0.2.4",
+    "require-directory": "^2.1.1"
+  }
+}

@@ -3,7 +3,7 @@
 const fastcall = require('fastcall')
 const ref = fastcall.ref
 
-const wlServerCore = require('./fastcall/wayland-server-core-native')
+const wlServerCore = require('./native')
 
 const List = require('./List')
 const Client = require('./Client')
@@ -11,36 +11,25 @@ const Client = require('./Client')
 class Resource {
   /**
    *
-   * @param {Client}client
-   * @param {Interface} interface_
-   * @param {number} version
-   * @param {number} id
-   * @returns {module.Resource}
-   */
-  static create (client, interface_, version, id) {
-    const resourcePtr = wlServerCore.interface.wl_resource_create(client.ptr, interface_.ptr, version, id)
-    return new Resource(resourcePtr)
-  }
-
-  /**
-   *
    * @param {List} list
-   * @returns {module.Resource}
+   * @returns {Resource}
    */
   static fromLink (list) {
     const resourcePtr = wlServerCore.interface.wl_resource_from_link(list.ptr)
-    return new Resource(resourcePtr)
+    const dataPtr = wlServerCore.interface.wl_resource_get_user_data(resourcePtr)
+    return dataPtr.readObject(0)
   }
 
   /**
    *
    * @param {List} list
    * @param {Client} client
-   * @return {module.Resource}
+   * @return {Resource}
    */
   static findForClient (list, client) {
     const resourcePtr = wlServerCore.interface.wl_resource_find_for_client(list.ptr, client.ptr)
-    return new Resource(resourcePtr)
+    const dataPtr = wlServerCore.interface.wl_resource_get_user_data(resourcePtr)
+    return dataPtr.readObject(0)
   }
 
   constructor (ptr) {
@@ -81,13 +70,13 @@ class Resource {
 
   setDispatcher (dispatcher, implementation, destroy) {
     this._dispatcherPtr = wlServerCore.interface.wl_dispatcher_func_t(dispatcher)
-    this.implementation = implementation
+    this._destroyPtr = wlServerCore.interface.wl_resource_destroy_func_t(destroy)
     const implPtr = ref.alloc('Object').writeObject(implementation, 0)
     const dataPtr = ref.alloc('Object').writeObject(this, 0)
-    wlServerCore.interface.wl_resource_set_dispatcher(this.ptr, this._dispatcherPtr, implPtr, dataPtr, destroy)
+    wlServerCore.interface.wl_resource_set_dispatcher(this.ptr, this._dispatcherPtr, implPtr, dataPtr, this._destroyPtr)
   }
 
-  getUserData () {
+  get userData () {
     return wlServerCore.interface.wl_resource_get_user_data(this.ptr)
   }
 
@@ -98,14 +87,14 @@ class Resource {
   /**
    * @returns {number}
    */
-  getId () {
+  get id () {
     return wlServerCore.interface.wl_resource_get_id(this.ptr)
   }
 
   /**
    * @returns {List}
    */
-  getLink () {
+  get link () {
     const listPtr = wlServerCore.interface.wl_resource_get_link(this.ptr)
     return new List(listPtr)
   }
@@ -113,7 +102,7 @@ class Resource {
   /**
    * @returns {Client} client
    */
-  getClient () {
+  get client () {
     const clientPtr = wlServerCore.interface.wl_resource_get_client(this.ptr)
     return new Client(clientPtr)
   }
@@ -121,18 +110,18 @@ class Resource {
   /**
    * @returns {number}
    */
-  getVersion () {
+  get version () {
     return wlServerCore.interface.wl_resource_get_version(this.ptr)
   }
 
-  setDestructor (destroy) {
+  set destructor (destroy) {
     wlServerCore.interface.wl_resource_set_destructor(this.ptr, destroy)
   }
 
   /**
    * @return {string}
    */
-  getClass () {
+  get class () {
     const classPtr = wlServerCore.interface.wl_resource_get_class(this.ptr)
     return ref.readCString(classPtr, 0)
   }
@@ -146,5 +135,5 @@ class Resource {
   }
 }
 
-require('namespace').wl_resource = Resource
+require('./namespace').wl_resource = Resource
 module.exports = Resource

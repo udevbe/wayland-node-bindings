@@ -1,10 +1,11 @@
 'use strict'
 
-const wlServerCore = require('./fastcall/wayland-server-core-native')
+const util = require('util')
+
+const wlServerCore = require('./native')
 const WlInterface = wlServerCore.structs.wl_interface.type
 
 const namespace = require('./namespace')
-
 const Resource = require('./Resource')
 
 module.exports = class Dispatcher {
@@ -18,7 +19,7 @@ module.exports = class Dispatcher {
   }
 
   static _unmarshallArgs (resource, wlMessage, wlArgumentArray) {
-    const jsArgs = []
+    const jsArgs = [resource]
     const messageStruct = wlMessage.deref()
     const signature = messageStruct.signature.readCString(0)
 
@@ -44,20 +45,20 @@ module.exports = class Dispatcher {
     }
   }
 
-  static 'i' (wlArg, optional) {
+  static 'i' (wlArg) {
     return wlArg.deref().i
   }
 
-  static 'u' (wlArg, optional) {
+  static 'u' (wlArg) {
     return wlArg.deref().u
   }
 
-  static 'f' (wlArg, optional) {
+  static 'f' (wlArg) {
     const fixedRaw = wlArg.deref().f
     return fixedRaw / 256.0
   }
 
-  static 'h' (wlArg, optional) {
+  static 'h' (wlArg) {
     return wlArg.deref().h
   }
 
@@ -70,7 +71,7 @@ module.exports = class Dispatcher {
     } else {
       const resourcePtr = client.getObject(objectId)
       const genericResourceArg = new Resource(resourcePtr)
-      const data = genericResourceArg.getUserData()
+      const data = genericResourceArg.userData
       if (data !== Buffer.NULL_POINTER) {
         // data will hold the more specific js object that extends Resource
         return data.readObject(0)
@@ -83,20 +84,26 @@ module.exports = class Dispatcher {
     }
   }
 
-  static 'n' (wlArg, optional) {
+  static 'n' (wlArg) {
     return wlArg.deref().n
   }
 
-  static 's' (wlArg, optional) {
+  static 's' (wlArg) {
     return wlArg.deref().s.readCString(0)
   }
 
-  static 'a' (wlArg, optional) {
+  static 'a' (wlArg) {
     return wlArg.deref().a
   }
 
   static _reconstructResource (resourcePtr, wlInterface) {
-    const interfaceName = wlInterface.name.readCString(0)
-    return new namespace[interfaceName](resourcePtr)
+    const itfName = wlInterface.name.readCString(0)
+    const itfVersion = wlInterface.version
+
+    if (itfVersion > 1) {
+      return new namespace[util.format('%sV%d', itfName, itfVersion)](resourcePtr)
+    } else {
+      return new namespace[itfName](resourcePtr)
+    }
   }
 }

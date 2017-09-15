@@ -1,32 +1,6 @@
 {
-  "name": "wayland-node-bindings",
-  "version": "1.0.0",
-  "description": "Wayland bindings for Node.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/Zubnix/wayland-node-bindings.git"
-  },
-  "keywords": [
-    "wayland",
-    "node",
-    "node.js",
-    "bindings",
-    "client",
-    "server"
-  ],
-  "author": "Erik De Rijcke",
-  "license": "MIT",
-  "bugs": {
-    "url": "https://github.com/Zubnix/wayland-node-bindings/issues"
-  },
-  "homepage": "https://github.com/Zubnix/wayland-node-bindings#readme",
-  "devDependencies": {
-    "standard": "^10.0.3"
-  },
+  "name": "wayland-node-bindings-test",
   "dependencies": {
-    "fastcall": "^0.2.4"
+    "fastcall": "file:server/runtime"
   }
 }

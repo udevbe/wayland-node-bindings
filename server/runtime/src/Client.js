@@ -1,6 +1,6 @@
 'use strict'
 
-const wlServerCore = require('./fastcall/wayland-server-core-native')
+const wlServerCore = require('./native')
 
 const Listener = require('./Listener')
 const Resource = require('./Resource')
@@ -38,7 +38,7 @@ class Client {
   /**
    * @returns {List}
    */
-  getLink () {
+  get link () {
     const listPtr = wlServerCore.interface.wl_client_get_link(this.ptr)
     return new List(listPtr)
   }
@@ -53,7 +53,7 @@ class Client {
    *
    * @returns {number}
    */
-  getFd () {
+  get fd () {
     return wlServerCore.interface.wl_client_get_fd(this.ptr)
   }
 
@@ -90,7 +90,7 @@ class Client {
   /**
    * @returns {Display}
    */
-  getDisplay () {
+  get display () {
     const displayPtr = wlServerCore.interface.wl_client_get_display(this.ptr)
     return new Display(displayPtr)
   }

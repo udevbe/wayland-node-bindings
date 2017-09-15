@@ -3,7 +3,7 @@
 const fastcall = require('fastcall')
 const ref = fastcall.ref
 
-const wlServerCore = require('./fastcall/wayland-server-core-native')
+const wlServerCore = require('./native')
 
 const EventLoop = require('./EventLoop')
 const Listener = require('./EventLoop')
@@ -23,7 +23,7 @@ class Display {
     wlServerCore.interface.wl_display_destroy(this.ptr)
   }
 
-  getEventLoop () {
+  get eventLoop () {
     const eventLoopPtr = wlServerCore.interface.wl_display_get_event_loop(this.ptr)
     return new EventLoop(eventLoopPtr)
   }
@@ -64,7 +64,7 @@ class Display {
   /**
    * @returns {number}
    */
-  getSerial () {
+  get serial () {
     return wlServerCore.interface.wl_display_get_serial(this.ptr)
   }
 
@@ -109,7 +109,7 @@ class Display {
    *
    * @returns {List}
    */
-  getClientList () {
+  get clientList () {
     const listPtr = wlServerCore.interface.wl_display_get_client_list(this.ptr)
     return new List(listPtr)
   }

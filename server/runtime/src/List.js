@@ -1,6 +1,6 @@
 'use strict'
 
-const wlServerCore = require('./fastcall/wayland-server-core-native')
+const wlServerCore = require('./native')
 
 class List {
   static * forEach (head, getMember, getLink) {

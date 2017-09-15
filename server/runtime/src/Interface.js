@@ -2,7 +2,7 @@
 
 const fastcall = require('fastcall')
 
-const wlServerCore = require('./fastcall/wayland-server-core-native')
+const wlServerCore = require('./native')
 const WlInterface = wlServerCore.structs.wl_interface.type
 
 class Interface {

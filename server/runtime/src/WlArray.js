@@ -1,6 +1,6 @@
 'use strict'
 
-const wlServerCore = require('./fastcall/wayland-server-core-native')
+const wlServerCore = require('./native')
 const WlArrayStruct = wlServerCore.structs.wl_array.type
 
 class WlArray {
@@ -14,5 +14,5 @@ class WlArray {
   }
 }
 
-require('namespace').wl_array = WlArray
+require('./namespace').wl_array = WlArray
 module.exports = WlArray

@@ -1,6 +1,8 @@
 'use strict'
 
-const wlServerCore = require('./fastcall/wayland-server-core-native')
+const wlServerCore = require('./native')
+
+const Interface = require('./Interface')
 
 class Global {
   constructor (display, interface_, version, data, bind) {
@@ -11,11 +13,12 @@ class Global {
     wlServerCore.interface.wl_global_destroy(this.ptr)
   }
 
-  getInterface () {
+  get interface () {
     const interfacePtr = wlServerCore.interface.wl_global_get_interface(this.ptr)
+    return new Interface(interfacePtr)
   }
 
-  getUserData () {
+  get userData () {
     wlServerCore.interface.wl_global_get_user_data(this.ptr)
   }
 }

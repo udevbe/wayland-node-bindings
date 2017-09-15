@@ -1,6 +1,6 @@
 'use strict'
 
-const wlServerCore = require('./fastcall/wayland-server-core-native')
+const wlServerCore = require('./native')
 const EventSource = require('./EventSource')
 const Listener = require('./Listener')
 
@@ -46,7 +46,7 @@ class EventLoop {
     return new EventSource(eventSourcePtr)
   }
 
-  getFd () {
+  get fd () {
     return wlServerCore.interface.wl_event_loop_get_fd(this.ptr)
   }
 
