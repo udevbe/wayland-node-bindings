@@ -292,6 +292,48 @@ wfg.ProtocolParser = class {
 
     console.log(util.format('Processing interface %s v%d', itfName, itfVersion))
 
+    // enums
+    if (protocolItf.hasOwnProperty('enum')) {
+      // create new files to define enums
+      const itfEnums = protocolItf.enum
+      for (let j = 0; j < itfEnums.length; j++) {
+        const itfEnum = itfEnums[j]
+        const enumName = itfEnum.$.name
+
+        let out
+        if (outDir === undefined) {
+          out = fs.createWriteStream(util.format('%s_%s.js', itfName, enumName))
+        } else {
+          out = fs.createWriteStream(util.format('%/%s_%s.js', outDir, itfName, enumName))
+        }
+
+        out.on('open', (fd) => {
+          out.write('const namespace = require(\'wayland-server-bindings\').namespace\n\n')
+          out.write(util.format('const %s_%s = {\n', itfName, enumName))
+
+          let firstArg = true
+          itfEnum.entry.forEach((entry) => {
+            const entryName = entry.$.name
+            const entryValue = entry.$.value
+            const entrySummary = entry.$.summary
+
+            if (!firstArg) {
+              out.write(',\n')
+            }
+            firstArg = false
+
+            out.write('  /**\n')
+            out.write(util.format('   * %s\n', entrySummary))
+            out.write('   */\n')
+            out.write(util.format('  %s: %s', entryName, entryValue))
+          })
+          out.write('\n}\n\n')
+          out.write(util.format('namespace.%s_%s = %s_%s\n', itfName, enumName, itfName, enumName))
+          out.write(util.format('module.exports = %s_%s\n', itfName, enumName))
+        })
+      }
+    }
+
     // request itf
     if (protocolItf.hasOwnProperty('request')) {
       // create new file to define requests
@@ -474,7 +516,6 @@ wfg.ProtocolParser = class {
     jsonProtocol.protocol.interface.forEach((itf) => {
       this._parseInterface(itf, copyright, outDir)
     })
-    // TODO enums?
     console.log('Done')
   }
 
