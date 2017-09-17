@@ -16,7 +16,7 @@ wfg.ProtocolParser = class {
     return {
       signature: optional ? '?u' : 'u',
       jsType: optional ? '?Number' : 'Number',
-      marshallGen: optional ? util.format('ns._uintOptional(%s)', argName) : util.format('ns._uint(%s)', argName)
+      marshallGen: optional ? util.format('namespace._uintOptional(%s)', argName) : util.format('namespace._uint(%s)', argName)
     }
   }
 
@@ -24,7 +24,7 @@ wfg.ProtocolParser = class {
     return {
       signature: optional ? '?i' : 'i',
       jsType: optional ? '?Number' : 'Number',
-      marshallGen: optional ? util.format('ns._intOptional(%s)', argName) : util.format('ns._int(%s)', argName)
+      marshallGen: optional ? util.format('namespace._intOptional(%s)', argName) : util.format('namespace._int(%s)', argName)
     }
   }
 
@@ -32,7 +32,7 @@ wfg.ProtocolParser = class {
     return {
       signature: optional ? '?f' : 'f',
       jsType: optional ? '?Fixed' : 'Fixed',
-      marshallGen: optional ? util.format('ns._fixedOptional(%s)', argName) : util.format('ns._fixed(%s)', argName)
+      marshallGen: optional ? util.format('namespace._fixedOptional(%s)', argName) : util.format('namespace._fixed(%s)', argName)
     }
   }
 
@@ -40,7 +40,7 @@ wfg.ProtocolParser = class {
     return {
       signature: optional ? '?o' : 'o',
       jsType: optional ? '?*' : '*',
-      marshallGen: optional ? util.format('ns._objectOptional(%s)', argName) : util.format('ns._object(%s)', argName)
+      marshallGen: optional ? util.format('namespace._objectOptional(%s)', argName) : util.format('namespace._object(%s)', argName)
     }
   }
 
@@ -48,7 +48,7 @@ wfg.ProtocolParser = class {
     return {
       signature: optional ? '?n' : 'n',
       jsType: '*',
-      marshallGen: 'ns._newObject()'
+      marshallGen: optional ? util.format('namespace._newObjectOptional(%s)', argName) : util.format('namespace._newObject(%s)', argName)
     }
   }
 
@@ -56,7 +56,7 @@ wfg.ProtocolParser = class {
     return {
       signature: optional ? '?s' : 's',
       jsType: optional ? '?string' : 'string',
-      marshallGen: optional ? util.format('ns._stringOptional(%s)', argName) : util.format('ns._string(%s)', argName)
+      marshallGen: optional ? util.format('namespace._stringOptional(%s)', argName) : util.format('namespace._string(%s)', argName)
     }
   }
 
@@ -64,7 +64,7 @@ wfg.ProtocolParser = class {
     return {
       signature: optional ? '?a' : 'a',
       jsType: optional ? '?ArrayBuffer' : 'ArrayBuffer',
-      marshallGen: optional ? util.format('ns._arrayOptional(%s)', argName) : util.format('ns._array(%s)', argName)
+      marshallGen: optional ? util.format('namespace._arrayOptional(%s)', argName) : util.format('namespace._array(%s)', argName)
     }
   }
 
@@ -74,9 +74,6 @@ wfg.ProtocolParser = class {
       let processedFirstArg = false
       for (let i = 0; i < evArgs.length; i++) {
         const arg = evArgs[i]
-        if (arg.$.type === 'new_id') {
-          continue
-        }
 
         const argName = arg.$.name
         if (processedFirstArg) {
@@ -149,7 +146,7 @@ wfg.ProtocolParser = class {
   }
 
   _signature (message) {
-    let signature = '\''
+    let signature = ''
     if (message.hasOwnProperty('arg')) {
       const args = message.arg
       args.forEach((arg) => {
@@ -159,7 +156,6 @@ wfg.ProtocolParser = class {
         signature += this[argType](argName, optional).signature
       })
     }
-    signature += '\''
 
     return signature
   }
@@ -169,6 +165,10 @@ wfg.ProtocolParser = class {
       const args = message.arg
       let firstArg = true
       args.forEach((arg) => {
+        if (!firstArg) {
+          body.push(',\n')
+        }
+        firstArg = false
         const argType = arg.$.type
         if (argType === 'object' && arg.$.hasOwnProperty('interface')) {
           const argItfName = arg.$.interface
@@ -177,39 +177,31 @@ wfg.ProtocolParser = class {
         } else {
           body.push('      null')
         }
-        if (!firstArg) {
-          body.push(',\n')
-        }
-        firstArg = false
       })
-      body.push('\n')
     }
   }
 
-  _parseItfReqDef (requires, body, itfRequest, opcode, itfVersion) {
+  _parseItfReqDef (requires, body, itfRequest, opcode, itfVersion, sinceVersion) {
     const eventName = itfRequest.$.name
 
     body.push('  new WlMessage({\n')
     body.push(util.format('    name: \'%s\',\n', eventName))
-    body.push(util.format('    signature: %s,\n', this._signature(itfRequest)))
+    body.push(util.format('    signature: \'%d%s\',\n', sinceVersion, this._signature(itfRequest, sinceVersion)))
     body.push('    types: [\n')
-    // TODO add types to requires from args
     this._parseMessageTypes(requires, body, itfRequest)
-    body.push('    ]\n')
+    body.push('\n    ]\n')
     body.push('  })')
   }
 
-  _parseItfEventDef (requires, body, itfEvent, opcode, itfVersion) {
-
+  _parseItfEventDef (requires, body, itfEvent, opcode, itfVersion, sinceVersion) {
     const eventName = itfEvent.$.name
 
     body.push('  new WlMessage({\n')
     body.push(util.format('    name: \'%s\',\n', eventName))
-    body.push(util.format('    signature: %s,\n', this._signature(itfEvent)))
+    body.push(util.format('    signature: \'%d%s\',\n', sinceVersion, this._signature(itfEvent)))
     body.push('    types: [\n')
-    // TODO add types to requires from args
     this._parseMessageTypes(requires, body, itfEvent)
-    body.push('    ]\n')
+    body.push('\n    ]\n')
     body.push('  })')
   }
 
@@ -240,18 +232,7 @@ wfg.ProtocolParser = class {
             const argName = arg.$.name
             const optional = arg.$.hasOwnProperty('allow-null') && (arg.$['allow-null'] === 'true')
             const argType = arg.$.type
-            if (argType !== 'new_id') {
-              body.push(util.format('   * @param {%s} %s %s\n', this[argType](argName, optional).jsType, argName, argDescription))
-            }
-          })
-
-          eventArgs.forEach((arg) => {
-            const argDescription = arg.$.summary
-            const argItf = arg.$['interface']
-            const argType = arg.$.type
-            if (argType === 'new_id') {
-              body.push(util.format('   * @return {%s} %s\n', argItf, argDescription))
-            }
+            body.push(util.format('   * @param {%s} %s %s\n', this[argType](argName, optional).jsType, argName, argDescription))
           })
           body.push('   *\n')
         }
@@ -268,7 +249,6 @@ wfg.ProtocolParser = class {
 
     // function args
     let argArray = '['
-    let itfName
     if (itfEvent.hasOwnProperty('arg')) {
       const reqArgs = itfEvent.arg
 
@@ -277,10 +257,6 @@ wfg.ProtocolParser = class {
         const argType = arg.$.type
         const argName = arg.$.name
         const optional = arg.$.hasOwnProperty('allow-null') && (arg.$['allow-null'] === 'true')
-
-        if (argType === 'new_id') {
-          itfName = arg.$['interface']
-        }
 
         if (i !== 0) {
           argArray += ', '
@@ -291,17 +267,11 @@ wfg.ProtocolParser = class {
     }
     argArray += ']'
 
-    if (itfName) {
-      // TODO server side object creation
-      // body.push(util.format('    return this.client._marshallConstructor(this.id, %d, "%s", %s);\n', opcode, itfName, argArray))
-    } else {
-      body.push(util.format('    native.interface.wl_resource_post_event_array(this.ptr, %d, %s)\n', opcode, argArray))
-    }
-
+    body.push(util.format('    native.interface.wl_resource_post_event_array(this.ptr, %d, %s)\n', opcode, argArray))
     body.push('  }\n')
   }
 
-  _parseInterface (protocolItf, copyright) {
+  _parseInterface (protocolItf, copyright, outDir) {
     const copyrights = []
 
     // copyright
@@ -325,7 +295,12 @@ wfg.ProtocolParser = class {
     // request itf
     if (protocolItf.hasOwnProperty('request')) {
       // create new file to define requests
-      const out = fs.createWriteStream(util.format('%s_requests.js', itfName))
+      let out
+      if (outDir === undefined) {
+        out = fs.createWriteStream(util.format('%s_requests.js', itfName))
+      } else {
+        out = fs.createWriteStream(util.format('%/%s_requests.js', outDir, itfName))
+      }
       out.on('open', (fd) => {
         const reqRequires = []
         const reqBody = []
@@ -370,7 +345,7 @@ wfg.ProtocolParser = class {
       const body = []
       const requires = []
       requires.push('const wsb = require(\'wayland-server-bindings\')\n')
-      requires.push('const ns = wsb.ns\n')
+      requires.push('const namespace = wsb.namespace\n')
       requires.push('const native = wsb.native\n')
       requires.push('const Dispatcher = wsb.Dispatcher\n')
       requires.push('const Resource = wsb.Resource\n')
@@ -446,7 +421,7 @@ wfg.ProtocolParser = class {
           if (j > 0) {
             body.push(',\n')
           }
-          this._parseItfReqDef(requires, body, itfRequests[j], j, i)
+          this._parseItfReqDef(requires, body, itfRequests[j], j, i, sinceVersion)
         }
       }
 
@@ -462,17 +437,22 @@ wfg.ProtocolParser = class {
           if (j > 0) {
             body.push(',\n')
           }
-          this._parseItfEventDef(requires, body, itfEvents[j], j, i)
+          this._parseItfEventDef(requires, body, itfEvents[j], j, i, sinceVersion)
         }
       }
 
       body.push('])\n\n')
 
       // module exports
-      body.push(util.format('ns.%s = %s\n', className, className))
-      body.push(util.format('module.exports = %s\n\n', className))
+      body.push(util.format('namespace.%s = %s\n', className, className))
+      body.push(util.format('module.exports = %s\n', className))
 
-      const out = fs.createWriteStream(util.format('%s.js', className))
+      let out
+      if (outDir === undefined) {
+        out = fs.createWriteStream(util.format('%s.js', className))
+      } else {
+        out = fs.createWriteStream(util.format('%s/%s.js', outDir, className))
+      }
       out.on('open', (fd) => {
         copyrights.forEach((line) => {
           out.write(line)
@@ -489,16 +469,16 @@ wfg.ProtocolParser = class {
     }
   }
 
-  _parseProtocol (jsonProtocol) {
+  _parseProtocol (jsonProtocol, outDir) {
     const copyright = jsonProtocol.protocol.copyright
     jsonProtocol.protocol.interface.forEach((itf) => {
-      this._parseInterface(itf, copyright)
+      this._parseInterface(itf, copyright, outDir)
     })
     // TODO enums?
     console.log('Done')
   }
 
-  parse () {
+  parse (outDir) {
     let appRoot
     if (this.protocolFile.substring(0, 1) === '/') {
       appRoot = ''
@@ -514,7 +494,7 @@ wfg.ProtocolParser = class {
         // uncomment to see the protocol as json output
         console.log(util.inspect(result, false, null))
 
-        this._parseProtocol(result)
+        this._parseProtocol(result, outDir)
       })
     })
   }
@@ -531,15 +511,21 @@ const cli = meow(`Usage:
     The FILE argument is a relative or absolute path to a Wayland XML.
 
     Options:
+        -o, --out          output directory
         -h, --help         print usage information
         -v, --version      show version info and exit
         
-`, {})
+`, {
+  alias: {
+    o: 'out'
+  }
+})
 
 if (cli.input.length === 0) {
   cli.showHelp()
 }
 
+let outDir = cli.flags.o
 cli.input.forEach((protocol) => {
-  new wfg.ProtocolParser(protocol).parse()
+  new wfg.ProtocolParser(protocol).parse(outDir)
 })

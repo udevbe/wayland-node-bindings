@@ -37,8 +37,8 @@ module.exports = {
     return new WlArgument({o: arg}).ref()
   },
 
-  _newObject: () => {
-    // TODO
+  _newObject: (arg) => {
+    return new WlArgument({n: arg.id}).ref()
   },
 
   _stringOptional: (arg) => {
