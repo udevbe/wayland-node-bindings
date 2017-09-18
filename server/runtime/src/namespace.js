@@ -13,6 +13,14 @@ module.exports = {
     return new WlArgument({u: arg}).ref()
   },
 
+  _fdOptional: (arg) => {
+    return new WlArgument({h: arg === null ? null : arg}).ref()
+  },
+
+  _fd: (arg) => {
+    return new WlArgument({h: arg}).ref()
+  },
+
   _intOptional: (arg) => {
     return this._uintOptional(arg)
   },

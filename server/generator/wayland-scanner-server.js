@@ -20,6 +20,14 @@ wfg.ProtocolParser = class {
     }
   }
 
+  ['fd'] (argName, optional) {
+    return {
+      signature: optional ? '?h' : 'h',
+      jsType: optional ? '?Number' : 'Number',
+      marshallGen: optional ? util.format('namespace._fdOptional(%s)', argName) : util.format('namespace._fd(%s)', argName)
+    }
+  }
+
   ['int'] (argName, optional) {
     return {
       signature: optional ? '?i' : 'i',
@@ -86,15 +94,13 @@ wfg.ProtocolParser = class {
   }
 
   static _generateRequestArgs (reqRequires, reqBody, ev) {
-    reqBody.push('resource, ')
+    reqBody.push('resource')
     if (ev.hasOwnProperty('arg')) {
       const evArgs = ev.arg
       for (let i = 0; i < evArgs.length; i++) {
+        reqBody.push(', ')
         const arg = evArgs[i]
         const argName = arg.$.name
-        if (i !== 0) {
-          reqBody.push(', ')
-        }
         reqBody.push(argName)
       }
     }
@@ -373,7 +379,9 @@ wfg.ProtocolParser = class {
           out.write(line)
         })
         out.write('\n')
-        reqRequires.forEach((line) => {
+        reqRequires.filter(function (item, pos, self) {
+          return self.indexOf(item) === pos
+        }).forEach((line) => {
           out.write(line)
         })
         out.write('\n')
@@ -500,7 +508,9 @@ wfg.ProtocolParser = class {
           out.write(line)
         })
         out.write('\n')
-        requires.forEach((line) => {
+        requires.filter(function (item, pos, self) {
+          return self.indexOf(item) === pos
+        }).forEach((line) => {
           out.write(line)
         })
         out.write('\n')
@@ -533,7 +543,7 @@ wfg.ProtocolParser = class {
         if (err) throw err
 
         // uncomment to see the protocol as json output
-        console.log(util.inspect(result, false, null))
+        //console.log(util.inspect(result, false, null))
 
         this._parseProtocol(result, outDir)
       })
