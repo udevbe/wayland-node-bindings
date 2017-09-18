@@ -314,7 +314,7 @@ wfg.ProtocolParser = class {
         if (outDir === undefined) {
           out = fs.createWriteStream(util.format('%s_%s.js', itfName, enumName))
         } else {
-          out = fs.createWriteStream(util.format('%/%s_%s.js', outDir, itfName, enumName))
+          out = fs.createWriteStream(util.format('%s/%s_%s.js', outDir, itfName, enumName))
         }
 
         out.on('open', (fd) => {
@@ -351,7 +351,7 @@ wfg.ProtocolParser = class {
       if (outDir === undefined) {
         out = fs.createWriteStream(util.format('%s_requests.js', itfName))
       } else {
-        out = fs.createWriteStream(util.format('%/%s_requests.js', outDir, itfName))
+        out = fs.createWriteStream(util.format('%s/%s_requests.js', outDir, itfName))
       }
       out.on('open', (fd) => {
         const reqRequires = []
