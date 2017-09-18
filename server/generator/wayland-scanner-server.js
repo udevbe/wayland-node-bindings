@@ -159,7 +159,11 @@ wfg.ProtocolParser = class {
         const argName = arg.$.name
         const optional = arg.$.hasOwnProperty('allow-null') && (arg.$['allow-null'] === 'true')
         const argType = arg.$.type
-        signature += this[argType](argName, optional).signature
+        let argSignature = this[argType](argName, optional).signature
+        if (argSignature === 'n' && arg.$.interface === 'undefined') {
+          argSignature = 'sun'
+        }
+        signature += argSignature
       })
     }
 
@@ -192,7 +196,7 @@ wfg.ProtocolParser = class {
 
     body.push('  new WlMessage({\n')
     body.push(util.format('    name: \'%s\',\n', eventName))
-    body.push(util.format('    signature: \'%d%s\',\n', sinceVersion, this._signature(itfRequest, sinceVersion)))
+    body.push(util.format('    signature: \'%d%s\',\n', sinceVersion, this._signature(itfRequest)))
     body.push('    types: [\n')
     this._parseMessageTypes(requires, body, itfRequest)
     body.push('\n    ]\n')
