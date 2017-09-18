@@ -29,7 +29,6 @@
   },
   "dependencies": {
     "meow": "^3.7.0",
-    "wayland-server-bindings": "file:../runtime",
     "xml2js": "^0.4.19"
   }
 }
