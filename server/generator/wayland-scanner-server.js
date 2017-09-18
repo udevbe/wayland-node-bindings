@@ -318,7 +318,7 @@ wfg.ProtocolParser = class {
         }
 
         out.on('open', (fd) => {
-          out.write('const namespace = require(\'wayland-server-bindings\').namespace\n\n')
+          out.write('const namespace = require(\'wayland-server-bindings-runtime\').namespace\n\n')
           out.write(util.format('const %s_%s = {\n', itfName, enumName))
 
           let firstArg = true
@@ -398,7 +398,7 @@ wfg.ProtocolParser = class {
     for (let i = 1; i <= itfVersion; i++) {
       const body = []
       const requires = []
-      requires.push('const wsb = require(\'wayland-server-bindings\')\n')
+      requires.push('const wsb = require(\'wayland-server-bindings-runtime\')\n')
       requires.push('const namespace = wsb.namespace\n')
       requires.push('const native = wsb.native\n')
       requires.push('const Dispatcher = wsb.Dispatcher\n')
