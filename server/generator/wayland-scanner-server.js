@@ -195,9 +195,9 @@ wfg.ProtocolParser = class {
     const eventName = itfRequest.$.name
 
     body.push('  new WlMessage({\n')
-    body.push(util.format('    name: \'%s\',\n', eventName))
-    body.push(util.format('    signature: \'%d%s\',\n', sinceVersion, this._signature(itfRequest)))
-    body.push('    types: ArrayType(\'pointer\')([\n')
+    body.push(util.format('    name: fastcall.makeStringBuffer(\'%s\'),\n', eventName))
+    body.push(util.format('    signature: fastcall.makeStringBuffer(\'%d%s\'),\n', sinceVersion, this._signature(itfRequest)))
+    body.push('    types: PointerArray([\n')
     this._parseMessageTypes(requires, body, itfRequest)
     body.push('\n    ])\n')
     body.push('  })')
@@ -209,7 +209,7 @@ wfg.ProtocolParser = class {
     body.push('  new WlMessage({\n')
     body.push(util.format('    name: \'%s\',\n', eventName))
     body.push(util.format('    signature: \'%d%s\',\n', sinceVersion, this._signature(itfEvent)))
-    body.push('    types: ArrayType(\'pointer\')([\n')
+    body.push('    types: PointerArray([\n')
     this._parseMessageTypes(requires, body, itfEvent)
     body.push('\n    ])\n')
     body.push('  })')
@@ -398,9 +398,10 @@ wfg.ProtocolParser = class {
     for (let i = 1; i <= itfVersion; i++) {
       const body = []
       const requires = []
+      requires.push('const fastcall = require(\'fastcall\')\n')
+      requires.push('const NULL = fastcall.ref.NULL_POINTER\n')
+      requires.push('const PointerArray = fastcall.ArrayType(\'pointer\')\n')
       requires.push('const wsb = require(\'wayland-server-bindings-runtime\')\n')
-      requires.push('const NULL = require(\'fastcall\').ref.NULL_POINTER\n')
-      requires.push('const ArrayType = require(\'fastcall\').ref.ArrayType\n')
       requires.push('const namespace = wsb.namespace\n')
       requires.push('const native = wsb.native\n')
       requires.push('const WlMessage = native.structs.wl_message.type\n')

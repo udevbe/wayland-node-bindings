@@ -11,7 +11,7 @@ lib.struct('struct wl_object {}')
 lib.struct('struct wl_array { size_t size; size_t alloc; void *data; }')
 lib.union('union wl_argument { int32 i; uint32 u; uint32 f; char *s; wl_object *o; uint32 n; wl_array *a; int32 h; }')
 lib.array('wl_argument[] ArgsArray')
-lib.struct('struct wl_message { char *name; char *signature; void **types; }')
+lib.struct('struct wl_message { char *name; char *signature; void*[] types; }')
 lib.array('wl_message[] MessageArray')
 lib.struct('struct wl_interface { char *name; int version; int method_count; MessageArray methods; int event_count; MessageArray events; }')
 
