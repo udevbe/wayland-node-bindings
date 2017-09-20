@@ -401,10 +401,10 @@ wfg.ProtocolParser = class {
       requires.push('const wsb = require(\'wayland-server-bindings-runtime\')\n')
       requires.push('const namespace = wsb.namespace\n')
       requires.push('const native = wsb.native\n')
+      requires.push('const WlMessage = native.structs.wl_message.type\n')
       requires.push('const Dispatcher = wsb.Dispatcher\n')
       requires.push('const Resource = wsb.Resource\n')
       requires.push('const Interface = wsb.Interface\n')
-      requires.push('const WlMessage = wsb.WlMessage\n')
 
       // class docs
       const description = protocolItf.description

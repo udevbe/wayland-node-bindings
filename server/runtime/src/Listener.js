@@ -1,13 +1,13 @@
 'use strict'
 
-const wlServerCore = require('./native')
-const WlListener = wlServerCore.structs.wl_listener.type
+const native = require('./native')
+const WlListener = native.structs.wl_listener.type
 
 class Listener {
   static create (func) {
     const struct = new WlListener({
       link: null,
-      notify: wlServerCore.interface.wl_notify_func_t(func)
+      notify: native.interface.wl_notify_func_t(func)
     })
     return new Listener(struct.ref())
   }
