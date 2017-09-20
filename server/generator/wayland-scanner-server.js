@@ -185,7 +185,7 @@ wfg.ProtocolParser = class {
           requires.push(util.format('const %s = require(\'%s\')\n', argItfName, argItfName))
           body.push(util.format('      %s.interface.ptr', argItfName))
         } else {
-          body.push('      null')
+          body.push('      NULL')
         }
       })
     }
@@ -197,9 +197,9 @@ wfg.ProtocolParser = class {
     body.push('  new WlMessage({\n')
     body.push(util.format('    name: \'%s\',\n', eventName))
     body.push(util.format('    signature: \'%d%s\',\n', sinceVersion, this._signature(itfRequest)))
-    body.push('    types: [\n')
+    body.push('    types: ArrayType(\'pointer\')([\n')
     this._parseMessageTypes(requires, body, itfRequest)
-    body.push('\n    ]\n')
+    body.push('\n    ])\n')
     body.push('  })')
   }
 
@@ -209,9 +209,9 @@ wfg.ProtocolParser = class {
     body.push('  new WlMessage({\n')
     body.push(util.format('    name: \'%s\',\n', eventName))
     body.push(util.format('    signature: \'%d%s\',\n', sinceVersion, this._signature(itfEvent)))
-    body.push('    types: [\n')
+    body.push('    types: ArrayType(\'pointer\')([\n')
     this._parseMessageTypes(requires, body, itfEvent)
-    body.push('\n    ]\n')
+    body.push('\n    ])\n')
     body.push('  })')
   }
 
@@ -399,6 +399,8 @@ wfg.ProtocolParser = class {
       const body = []
       const requires = []
       requires.push('const wsb = require(\'wayland-server-bindings-runtime\')\n')
+      requires.push('const NULL = require(\'fastcall\').ref.NULL_POINTER\n')
+      requires.push('const ArrayType = require(\'fastcall\').ref.ArrayType\n')
       requires.push('const namespace = wsb.namespace\n')
       requires.push('const native = wsb.native\n')
       requires.push('const WlMessage = native.structs.wl_message.type\n')
