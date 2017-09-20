@@ -466,7 +466,7 @@ wfg.ProtocolParser = class {
       body.push(util.format('%s.name = \'%s\'\n\n', className, itfName))
 
       // wayland interface declarations
-      body.push(util.format('%s.interface_ = Interface.create(\'%s\', %d, [\n', itfName, itfName, i))
+      body.push(util.format('%s.interface_ = Interface.create(\'%s\', %d, [\n', className, itfName, i))
       if (protocolItf.hasOwnProperty('request')) {
         const itfRequests = protocolItf.request
         for (let j = 0; j < itfRequests.length; j++) {
