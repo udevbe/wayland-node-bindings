@@ -132,7 +132,7 @@ wfg.ProtocolParser = class {
             const argType = arg.$.type
 
             if (argType === 'object') {
-              reqRequires.push(util.format('require(\'%s\')\n', arg.$.interface))
+              reqRequires.push(util.format('require(\'./%s\')\n', arg.$.interface))
             }
 
             reqBody.push(util.format('   * @param {%s} %s %s\n', this[argType](argName, optional).jsType, argName, argDescription))
@@ -182,7 +182,7 @@ wfg.ProtocolParser = class {
         const argType = arg.$.type
         if (argType === 'object' && arg.$.hasOwnProperty('interface')) {
           const argItfName = arg.$.interface
-          requires.push(util.format('const %s = require(\'%s\')\n', argItfName, argItfName))
+          requires.push(util.format('const %s = require(\'./%s\')\n', argItfName, argItfName))
           body.push(util.format('      %s.interface.ptr', argItfName))
         } else {
           body.push('      NULL')
@@ -395,137 +395,116 @@ wfg.ProtocolParser = class {
       })
     }
 
-    for (let i = 1; i <= itfVersion; i++) {
-      const body = []
-      const requires = []
-      requires.push('const fastcall = require(\'fastcall\')\n')
-      requires.push('const NULL = fastcall.ref.NULL_POINTER\n')
-      requires.push('const PointerArray = fastcall.ArrayType(\'pointer\')\n')
-      requires.push('const wsb = require(\'wayland-server-bindings-runtime\')\n')
-      requires.push('const namespace = wsb.namespace\n')
-      requires.push('const native = wsb.native\n')
-      requires.push('const WlMessage = native.structs.wl_message.type\n')
-      requires.push('const Dispatcher = wsb.Dispatcher\n')
-      requires.push('const Resource = wsb.Resource\n')
-      requires.push('const Interface = wsb.Interface\n')
+    const body = []
+    const requires = []
+    requires.push('const fastcall = require(\'fastcall\')\n')
+    requires.push('const NULL = fastcall.ref.NULL_POINTER\n')
+    requires.push('const PointerArray = fastcall.ArrayType(\'pointer\')\n')
+    requires.push('const wsb = require(\'wayland-server-bindings-runtime\')\n')
+    requires.push('const namespace = wsb.namespace\n')
+    requires.push('const native = wsb.native\n')
+    requires.push('const WlMessage = native.structs.wl_message.type\n')
+    requires.push('const Dispatcher = wsb.Dispatcher\n')
+    requires.push('const Resource = wsb.Resource\n')
+    requires.push('const Interface = wsb.Interface\n')
 
-      // class docs
-      const description = protocolItf.description
-      if (description) {
-        description.forEach((val) => {
-          body.push('/**\n')
-          if (val.hasOwnProperty('_')) {
-            val._.split('\n').forEach((line) => {
-              body.push(' *' + line + '\n')
-            })
-          }
-          body.push(' */\n')
-        })
-      }
-
-      // class
-      let className = itfName
-      if (i === 1) {
-        body.push(util.format('class %s extends Resource {\n', className))
-      } else {
-        className = util.format('%sV%d', itfName, i)
-        let extension
-        if (i === 2) {
-          extension = itfName
-        } else {
-          extension = util.format('%sV%d', itfName, i - 1)
+    // class docs
+    const description = protocolItf.description
+    if (description) {
+      description.forEach((val) => {
+        body.push('/**\n')
+        if (val.hasOwnProperty('_')) {
+          val._.split('\n').forEach((line) => {
+            body.push(' *' + line + '\n')
+          })
         }
-        body.push(util.format('class %s extends %s {\n', className, extension))
-        requires.push(util.format('const %s = require(\'./%s\')\n', extension, extension))
-      }
-
-      // create
-      body.push('  static create (client, version, id, implementation, destroyFunc) {\n')
-      body.push('    const resourcePtr = native.interface.wl_resource_create(client.ptr, this.interface_.ptr, version, id)\n')
-      body.push(util.format('    const resource = new %s(resourcePtr)\n', className))
-      body.push('    resource.setDispatcher(Dispatcher.dispatch, implementation, destroyFunc)\n')
-      body.push('    return resource\n')
-      body.push('  }\n')
-
-      // constructor
-      body.push('\n  constructor (ptr) {\n')
-      body.push('    super(ptr)\n')
-      body.push('  }\n')
-
-      // events
-      if (protocolItf.hasOwnProperty('event')) {
-        const itfEvents = protocolItf.event
-        for (let j = 0; j < itfEvents.length; j++) {
-          this._parseItfEvent(requires, body, itfEvents[j], j, i)
-        }
-      }
-
-      body.push('}\n\n')
-
-      // set name as static class property
-      body.push(util.format('%s.name = \'%s\'\n\n', className, itfName))
-
-      // wayland interface declarations
-      body.push(util.format('%s.interface_ = Interface.create(\'%s\', %d, [\n', className, itfName, i))
-      if (protocolItf.hasOwnProperty('request')) {
-        const itfRequests = protocolItf.request
-        for (let j = 0; j < itfRequests.length; j++) {
-          const sinceVersion = itfRequests[j].$.hasOwnProperty('since') ? parseInt(itfRequests[j].$.since) : 1
-          if (sinceVersion > i) {
-            continue
-          }
-
-          if (j > 0) {
-            body.push(',\n')
-          }
-          this._parseItfReqDef(requires, body, itfRequests[j], j, i, sinceVersion)
-        }
-      }
-
-      body.push('\n], [\n')
-      if (protocolItf.hasOwnProperty('event')) {
-        const itfEvents = protocolItf.event
-        for (let j = 0; j < itfEvents.length; j++) {
-          const sinceVersion = itfEvents[j].$.hasOwnProperty('since') ? parseInt(itfEvents[j].$.since) : 1
-          if (sinceVersion > i) {
-            continue
-          }
-
-          if (j > 0) {
-            body.push(',\n')
-          }
-          this._parseItfEventDef(requires, body, itfEvents[j], j, i, sinceVersion)
-        }
-      }
-
-      body.push('])\n\n')
-
-      // module exports
-      body.push(util.format('namespace.%s = %s\n', className, className))
-      body.push(util.format('module.exports = %s\n', className))
-
-      let out
-      if (outDir === undefined) {
-        out = fs.createWriteStream(util.format('%s.js', className))
-      } else {
-        out = fs.createWriteStream(util.format('%s/%s.js', outDir, className))
-      }
-      out.on('open', (fd) => {
-        copyrights.forEach((line) => {
-          out.write(line)
-        })
-        out.write('\n')
-        requires.filter(function (item, pos, self) {
-          return self.indexOf(item) === pos
-        }).forEach((line) => {
-          out.write(line)
-        })
-        out.write('\n')
-        body.forEach((line) => {
-          out.write(line)
-        })
+        body.push(' */\n')
       })
     }
+
+    // class
+    body.push(util.format('class %s extends Resource {\n', itfName))
+
+    // create
+    body.push('  static create (client, version, id, implementation, destroyFunc) {\n')
+    body.push('    const resourcePtr = native.interface.wl_resource_create(client.ptr, this.interface_.ptr, version, id)\n')
+    body.push(util.format('    const resource = new %s(resourcePtr)\n', itfName))
+    body.push('    resource.setDispatcher(Dispatcher.dispatch, implementation, destroyFunc)\n')
+    body.push('    return resource\n')
+    body.push('  }\n')
+
+    // constructor
+    body.push('\n  constructor (ptr) {\n')
+    body.push('    super(ptr)\n')
+    body.push('  }\n')
+
+    // events
+    if (protocolItf.hasOwnProperty('event')) {
+      const itfEvents = protocolItf.event
+      for (let j = 0; j < itfEvents.length; j++) {
+        this._parseItfEvent(requires, body, itfEvents[j], j, itfVersion)
+      }
+    }
+
+    body.push('}\n\n')
+
+    // set name as static class property
+    body.push(util.format('%s.name = \'%s\'\n\n', itfName, itfName))
+
+    // wayland interface declarations
+    body.push(util.format('%s.interface_ = Interface.create(\'%s\', %d, [\n', itfName, itfName, itfVersion))
+    if (protocolItf.hasOwnProperty('request')) {
+      const itfRequests = protocolItf.request
+      for (let j = 0; j < itfRequests.length; j++) {
+        const sinceVersion = itfRequests[j].$.hasOwnProperty('since') ? parseInt(itfRequests[j].$.since) : 1
+
+        if (j > 0) {
+          body.push(',\n')
+        }
+        this._parseItfReqDef(requires, body, itfRequests[j], j, itfVersion, sinceVersion)
+      }
+    }
+
+    body.push('\n], [\n')
+    if (protocolItf.hasOwnProperty('event')) {
+      const itfEvents = protocolItf.event
+      for (let j = 0; j < itfEvents.length; j++) {
+        const sinceVersion = itfEvents[j].$.hasOwnProperty('since') ? parseInt(itfEvents[j].$.since) : 1
+
+        if (j > 0) {
+          body.push(',\n')
+        }
+        this._parseItfEventDef(requires, body, itfEvents[j], j, itfVersion, sinceVersion)
+      }
+    }
+
+    body.push('])\n\n')
+
+    // module exports
+    body.push(util.format('namespace.%s = %s\n', itfName, itfName))
+    body.push(util.format('module.exports = %s\n', itfName))
+
+    let out
+    if (outDir === undefined) {
+      out = fs.createWriteStream(util.format('%s.js', itfName))
+    } else {
+      out = fs.createWriteStream(util.format('%s/%s.js', outDir, itfName))
+    }
+    out.on('open', (fd) => {
+      copyrights.forEach((line) => {
+        out.write(line)
+      })
+      out.write('\n')
+      requires.filter(function (item, pos, self) {
+        return self.indexOf(item) === pos
+      }).forEach((line) => {
+        out.write(line)
+      })
+      out.write('\n')
+      body.forEach((line) => {
+        out.write(line)
+      })
+    })
   }
 
   _parseProtocol (jsonProtocol, outDir) {
@@ -550,7 +529,7 @@ wfg.ProtocolParser = class {
         if (err) throw err
 
         // uncomment to see the protocol as json output
-        //console.log(util.inspect(result, false, null))
+        // console.log(util.inspect(result, false, null))
 
         this._parseProtocol(result, outDir)
       })
