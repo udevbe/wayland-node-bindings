@@ -433,7 +433,7 @@ wfg.ProtocolParser = class {
           extension = util.format('%sV%d', itfName, i - 1)
         }
         body.push(util.format('class %s extends %s {\n', className, extension))
-        requires.push(util.format('const %s = require(\'%s\')\n', extension, extension))
+        requires.push(util.format('const %s = require(\'./%s\')\n', extension, extension))
       }
 
       // create
