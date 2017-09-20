@@ -207,8 +207,8 @@ wfg.ProtocolParser = class {
     const eventName = itfEvent.$.name
 
     body.push('  new WlMessage({\n')
-    body.push(util.format('    name: \'%s\',\n', eventName))
-    body.push(util.format('    signature: \'%d%s\',\n', sinceVersion, this._signature(itfEvent)))
+    body.push(util.format('    name: fastcall.makeStringBuffer(\'%s\'),\n', eventName))
+    body.push(util.format('    signature: fastcall.makeStringBuffer(\'%d%s\'),\n', sinceVersion, this._signature(itfEvent)))
     body.push('    types: PointerArray([\n')
     this._parseMessageTypes(requires, body, itfEvent)
     body.push('\n    ])\n')
