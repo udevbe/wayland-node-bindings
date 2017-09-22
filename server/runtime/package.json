@@ -1,6 +1,6 @@
 {
   "name": "wayland-server-bindings-runtime",
-  "version": "0.0.12",
+  "version": "0.0.13",
   "description": "Wayland server bindings runtime for Node.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -28,6 +28,8 @@
   },
   "dependencies": {
     "fastcall": "^0.2.4",
+    "ffi": "^2.2.0",
+    "ref-struct": "^1.1.0",
     "require-directory": "^2.1.1"
   }
 }
