@@ -5,12 +5,15 @@ const WlArrayStruct = wlServerCore.structs.wl_array.type
 
 class WlArray {
   static create (buffer) {
-    const arrayPtr = new WlArrayStruct({size: buffer.byteLength, alloc: buffer.byteLength, data: buffer}).ref()
-    return new WlArray(arrayPtr)
+    return new WlArray(new WlArrayStruct({size: buffer.byteLength, alloc: buffer.byteLength, data: buffer}))
   }
 
-  constructor (ptr) {
-    this.ptr = ptr
+  constructor (struct) {
+    this._struct = struct
+  }
+
+  get ptr () {
+    return this._struct.ref()
   }
 }
 

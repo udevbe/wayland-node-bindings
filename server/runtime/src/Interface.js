@@ -7,19 +7,22 @@ const WlInterface = wlServerCore.structs.wl_interface.type
 
 class Interface {
   static create (name, version, methods, events) {
-    const interfacePtr = new WlInterface({
+    return new Interface(new WlInterface({
       name: fastcall.makeStringBuffer(name),
       version: version,
       method_count: methods.length,
       methods: methods,
       event_count: events.length,
       events: events
-    }).ref()
-    return new Interface(interfacePtr)
+    }))
   }
 
-  constructor (ptr) {
-    this.ptr = ptr
+  constructor (struct) {
+    this._struct = struct
+  }
+
+  get ptr () {
+    return this._struct.ref()
   }
 }
 

@@ -9,13 +9,27 @@ class Listener {
       link: null,
       notify: native.interface.wl_notify_func_t(func)
     })
-    return new Listener(struct.ref())
+
+    const listener = new Listener(struct)
+    // keep a reference to prevent gc
+    this.refs.push(listener)
+    return listener
   }
 
-  constructor (ptr) {
-    this.ptr = ptr
+  constructor (struct) {
+    this._struct = struct
+  }
+
+  get ptr () {
+    return this._struct.ref()
+  }
+
+  unref () {
+    this.constructor.refs.splice(this.constructor.refs.indexOf(this), 1)
   }
 }
+
+Listener.refs = []
 
 require('./namespace').wl_listener = Listener
 module.exports = Listener
