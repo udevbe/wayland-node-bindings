@@ -183,7 +183,7 @@ wfg.ProtocolParser = class {
         firstArg = false
         const argType = arg.$.type
         if (argType === 'object' && arg.$.hasOwnProperty('interface')) {
-          const argItfName = arg.$.interface
+          const argItfName = upperCamelCase(arg.$.interface)
           requires.push(util.format('const %s = require(\'./%s\')\n', argItfName, argItfName))
           body.push(util.format('      %s.interface_.ptr', argItfName))
         } else {
