@@ -8,6 +8,8 @@ const fs = require('fs')
 const util = require('util')
 const xml2js = require('xml2js')
 const meow = require('meow')
+const camelCase = require('camelcase')
+const upperCamelCase = require('uppercamelcase')
 
 const wfg = {}
 
@@ -83,7 +85,7 @@ wfg.ProtocolParser = class {
       for (let i = 0; i < evArgs.length; i++) {
         const arg = evArgs[i]
 
-        const argName = arg.$.name
+        const argName = camelCase(arg.$.name)
         if (processedFirstArg) {
           body.push(', ')
         }
@@ -100,7 +102,7 @@ wfg.ProtocolParser = class {
       for (let i = 0; i < evArgs.length; i++) {
         reqBody.push(', ')
         const arg = evArgs[i]
-        const argName = arg.$.name
+        const argName = camelCase(arg.$.name)
         reqBody.push(argName)
       }
     }
@@ -108,7 +110,7 @@ wfg.ProtocolParser = class {
 
   _parseItfRequest (reqRequires, reqBody, className, itfRequest) {
     const sinceVersion = itfRequest.$.hasOwnProperty('since') ? parseInt(itfRequest.$.since) : 1
-    const reqName = itfRequest.$.name
+    const reqName = camelCase(itfRequest.$.name)
 
     // function docs
     if (itfRequest.hasOwnProperty('description')) {
@@ -127,7 +129,7 @@ wfg.ProtocolParser = class {
           const evArgs = itfRequest.arg
           evArgs.forEach((arg) => {
             const argDescription = arg.$.summary
-            const argName = arg.$.name
+            const argName = camelCase(arg.$.name)
             const optional = arg.$.hasOwnProperty('allow-null') && (arg.$['allow-null'] === 'true')
             const argType = arg.$.type
 
@@ -156,7 +158,7 @@ wfg.ProtocolParser = class {
     if (message.hasOwnProperty('arg')) {
       const args = message.arg
       args.forEach((arg) => {
-        const argName = arg.$.name
+        const argName = camelCase(arg.$.name)
         const optional = arg.$.hasOwnProperty('allow-null') && (arg.$['allow-null'] === 'true')
         const argType = arg.$.type
         let argSignature = this[argType](argName, optional).signature
@@ -192,7 +194,7 @@ wfg.ProtocolParser = class {
   }
 
   _parseItfReqDef (requires, body, itfRequest, opcode, itfVersion, sinceVersion) {
-    const eventName = itfRequest.$.name
+    const eventName = camelCase(itfRequest.$.name)
 
     body.push('  new WlMessage({\n')
     body.push(util.format('    name: fastcall.makeStringBuffer(\'%s\'),\n', eventName))
@@ -204,7 +206,7 @@ wfg.ProtocolParser = class {
   }
 
   _parseItfEventDef (requires, body, itfEvent, opcode, itfVersion, sinceVersion) {
-    const eventName = itfEvent.$.name
+    const eventName = camelCase(itfEvent.$.name)
 
     body.push('  new WlMessage({\n')
     body.push(util.format('    name: fastcall.makeStringBuffer(\'%s\'),\n', eventName))
@@ -221,7 +223,7 @@ wfg.ProtocolParser = class {
       return
     }
 
-    const eventName = itfEvent.$.name
+    const eventName = camelCase(itfEvent.$.name)
 
     // function docs
     if (itfEvent.hasOwnProperty('description')) {
@@ -239,7 +241,7 @@ wfg.ProtocolParser = class {
           body.push('   *\n')
           eventArgs.forEach((arg) => {
             const argDescription = arg.$.summary
-            const argName = arg.$.name
+            const argName = camelCase(arg.$.name)
             const optional = arg.$.hasOwnProperty('allow-null') && (arg.$['allow-null'] === 'true')
             const argType = arg.$.type
             body.push(util.format('   * @param {%s} %s %s\n', this[argType](argName, optional).jsType, argName, argDescription))
@@ -265,7 +267,7 @@ wfg.ProtocolParser = class {
       for (let i = 0; i < reqArgs.length; i++) {
         const arg = reqArgs[i]
         const argType = arg.$.type
-        const argName = arg.$.name
+        const argName = camelCase(arg.$.name)
         const optional = arg.$.hasOwnProperty('allow-null') && (arg.$['allow-null'] === 'true')
 
         if (i !== 0) {
@@ -293,7 +295,7 @@ wfg.ProtocolParser = class {
     })
     copyrights.push(' */\n')
 
-    const itfName = protocolItf.$.name
+    const itfName = upperCamelCase(protocolItf.$.name)
     let itfVersion = 1
 
     if (protocolItf.$.hasOwnProperty('version')) {
@@ -308,13 +310,13 @@ wfg.ProtocolParser = class {
       const itfEnums = protocolItf.enum
       for (let j = 0; j < itfEnums.length; j++) {
         const itfEnum = itfEnums[j]
-        const enumName = itfEnum.$.name
+        const enumName = upperCamelCase(itfEnum.$.name)
 
         let out
         if (outDir === undefined) {
-          out = fs.createWriteStream(util.format('%s_%s.js', itfName, enumName))
+          out = fs.createWriteStream(util.format('%s%s.js', itfName, enumName))
         } else {
-          out = fs.createWriteStream(util.format('%s/%s_%s.js', outDir, itfName, enumName))
+          out = fs.createWriteStream(util.format('%s/%s%s.js', outDir, itfName, enumName))
         }
 
         out.on('open', (fd) => {
@@ -323,7 +325,7 @@ wfg.ProtocolParser = class {
 
           let firstArg = true
           itfEnum.entry.forEach((entry) => {
-            const entryName = entry.$.name
+            const entryName = camelCase(entry.$.name)
             const entryValue = entry.$.value
             const entrySummary = entry.$.summary
 
@@ -349,11 +351,11 @@ wfg.ProtocolParser = class {
       // create new file to define requests
       let out
       if (outDir === undefined) {
-        out = fs.createWriteStream(util.format('%s_requests.js', itfName))
+        out = fs.createWriteStream(util.format('%sRequests.js', itfName))
       } else {
-        out = fs.createWriteStream(util.format('%s/%s_requests.js', outDir, itfName))
+        out = fs.createWriteStream(util.format('%s/%sRequests.js', outDir, itfName))
       }
-      out.on('open', (fd) => {
+      out.on('open', () => {
         const reqRequires = []
         const reqBody = []
 
@@ -365,7 +367,7 @@ wfg.ProtocolParser = class {
         reqBody.push('  constructor () {\n')
         for (let j = 0; j < itfRequests.length; j++) {
           const itfRequest = itfRequests[j]
-          const reqName = itfRequest.$.name
+          const reqName = camelCase(itfRequest.$.name)
           reqBody.push(util.format('    this[%d] = this.%s\n', j, reqName))
         }
         reqBody.push('  }\n\n')
