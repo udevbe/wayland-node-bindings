@@ -134,7 +134,7 @@ wfg.ProtocolParser = class {
             const argType = arg.$.type
 
             if (argType === 'object') {
-              reqRequires.push(util.format('require(\'./%s\')\n', arg.$.interface))
+              reqRequires.push(util.format('require(\'./%s\')\n', upperCamelCase(arg.$.interface)))
             }
 
             reqBody.push(util.format('   * @param {%s} %s %s\n', this[argType](argName, optional).jsType, argName, argDescription))
