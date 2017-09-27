@@ -194,7 +194,7 @@ wfg.ProtocolParser = class {
   }
 
   _parseItfReqDef (requires, body, itfRequest, opcode, itfVersion, sinceVersion) {
-    const eventName = camelCase(itfRequest.$.name)
+    const eventName = itfRequest.$.name
 
     body.push('  new WlMessage({\n')
     body.push(util.format('    name: fastcall.makeStringBuffer(\'%s\'),\n', eventName))
@@ -206,7 +206,7 @@ wfg.ProtocolParser = class {
   }
 
   _parseItfEventDef (requires, body, itfEvent, opcode, itfVersion, sinceVersion) {
-    const eventName = camelCase(itfEvent.$.name)
+    const eventName = itfEvent.$.name
 
     body.push('  new WlMessage({\n')
     body.push(util.format('    name: fastcall.makeStringBuffer(\'%s\'),\n', eventName))
@@ -451,10 +451,10 @@ wfg.ProtocolParser = class {
     body.push('}\n\n')
 
     // set name as static class property
-    body.push(util.format('%s.name = \'%s\'\n\n', itfName, itfName))
+    body.push(util.format('%s.name = \'%s\'\n\n', itfName, protocolItf.$.name))
 
     // wayland interface declarations
-    body.push(util.format('%s.interface_ = Interface.create(\'%s\', %d, [\n', itfName, itfName, itfVersion))
+    body.push(util.format('%s.interface_ = Interface.create(\'%s\', %d, [\n', itfName, protocolItf.$.name, itfVersion))
     if (protocolItf.hasOwnProperty('request')) {
       const itfRequests = protocolItf.request
       for (let j = 0; j < itfRequests.length; j++) {
