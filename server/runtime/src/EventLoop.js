@@ -52,9 +52,9 @@ class EventLoop {
   }
 
   addDestroyListener (listener) {
-    wlServerCore.interface.wl_event_loop_add_destroy_listener(this.ptr, listener.ptr)
     // keep ref to avoid gc
     this.listeners.push(listener)
+    wlServerCore.interface.wl_event_loop_add_destroy_listener(this.ptr, listener.ptr)
   }
 
   getDestroyListener (notify) {

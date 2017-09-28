@@ -81,6 +81,8 @@ class Display {
    * @param {Listener} listener
    */
   addDestroyListener (listener) {
+    // keep ref to avoid gc
+    this.listeners.push(listener)
     wlServerCore.interface.wl_display_add_destroy_listener(this.ptr, listener.ptr)
   }
 

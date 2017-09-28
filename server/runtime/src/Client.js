@@ -63,9 +63,9 @@ class Client {
    * @param {Listener} listener
    */
   addDestroyListener (listener) {
-    wlServerCore.interface.wl_client_add_destroy_listener(this.ptr, listener.ptr)
     // keep ref to avoid gc
     this.listeners.push(listener)
+    wlServerCore.interface.wl_client_add_destroy_listener(this.ptr, listener.ptr)
   }
 
   getDestroyListener (notify) {
@@ -87,6 +87,8 @@ class Client {
   }
 
   addResourceCreatedListener (listener) {
+    // keep ref to avoid gc
+    this.listeners.push(listener)
     wlServerCore.interface.wl_client_add_resource_created_listener(this.ptr, listener.ptr)
   }
 

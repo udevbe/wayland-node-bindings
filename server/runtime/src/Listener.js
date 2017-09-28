@@ -1,20 +1,24 @@
 'use strict'
 
-const ref = require('fastcall').ref
-
 const native = require('./native')
 const WlListener = native.structs.wl_listener.type
 
 class Listener {
   static create (func) {
-    const structPtr = ref.alloc(WlListener)
-    structPtr.deref().notify = native.interface.wl_notify_func_t(func)
-    // keep a reference to prevent gc
-    return new Listener(structPtr)
+    const struct = new WlListener({
+      link: null,
+      notify: native.interface.wl_notify_func_t(func)
+    })
+
+    return new Listener(struct)
   }
 
-  constructor (ptr) {
-    this.ptr = ptr
+  constructor (struct) {
+    this._struct = struct
+  }
+
+  get ptr () {
+    return this._struct.ref()
   }
 }
 
