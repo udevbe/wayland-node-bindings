@@ -34,6 +34,7 @@ class Resource {
 
   constructor (ptr) {
     this.ptr = ptr
+    this.listeners = []
   }
 
   /**
@@ -132,6 +133,8 @@ class Resource {
    */
   addDestroyListener (listener) {
     wlServerCore.interface.wl_resource_add_destroy_listener(this.ptr, listener.ptr)
+    // keep ref to avoid gc
+    this.listeners.push(listener)
   }
 }
 

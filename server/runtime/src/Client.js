@@ -29,6 +29,7 @@ class Client {
 
   constructor (ptr) {
     this.ptr = ptr
+    this.listeners = []
   }
 
   destroy () {
@@ -63,6 +64,8 @@ class Client {
    */
   addDestroyListener (listener) {
     wlServerCore.interface.wl_client_add_destroy_listener(this.ptr, listener.ptr)
+    // keep ref to avoid gc
+    this.listeners.push(listener)
   }
 
   getDestroyListener (notify) {

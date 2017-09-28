@@ -17,6 +17,7 @@ class Display {
 
   constructor (ptr) {
     this.ptr = ptr
+    this.listeners = []
   }
 
   destroy () {
@@ -88,6 +89,8 @@ class Display {
    * @param {Listener} listener
    */
   addClientCreatedListener (listener) {
+    // keep ref to avoid gc
+    this.listeners.push(listener)
     wlServerCore.interface.wl_display_add_client_created_listener(this.ptr, listener.ptr)
   }
 
