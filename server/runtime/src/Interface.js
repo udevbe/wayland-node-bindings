@@ -5,6 +5,8 @@ const fastcall = require('fastcall')
 const wlServerCore = require('./native')
 const WlInterface = wlServerCore.structs.wl_interface.type
 
+const WlMessageArray = fastcall.ArrayType(wlServerCore.structs.wl_message.type)
+
 class Interface {
   static create (name, version, methods, events) {
     const namePtr = fastcall.makeStringBuffer(name)
@@ -12,9 +14,9 @@ class Interface {
       name: namePtr,
       version: version,
       method_count: methods.length,
-      methods: methods,
+      methods: new WlMessageArray(methods).buffer,
       event_count: events.length,
-      events: events
+      events: new WlMessageArray(events).buffer
     }), namePtr, methods, events)
   }
 
