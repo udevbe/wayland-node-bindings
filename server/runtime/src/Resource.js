@@ -7,6 +7,7 @@ const wlServerCore = require('./native')
 
 const List = require('./List')
 const Client = require('./Client')
+const dispatcher = require('./Dispatcher')
 
 class Resource {
   /**
@@ -68,14 +69,13 @@ class Resource {
     wlServerCore.interface.wl_resource_post_no_memory(this.ptr)
   }
 
-  setDispatcher (dispatcher, implementation, destroy) {
-    implementation.__dispatcherPtr = wlServerCore.interface.wl_dispatcher_func_t(dispatcher)
+  setDispatcher (implementation, destroy) {
     implementation.__destroyPtr = destroy === null ? ref.NULL_POINTER : wlServerCore.interface.wl_resource_destroy_func_t(destroy)
     implementation.__implPtr = ref.alloc('Object')
     implementation.__implPtr.writeObject(implementation, 0)
     implementation.__dataPtr = ref.alloc('Object')
     implementation.__dataPtr.writeObject(this, 0)
-    wlServerCore.interface.wl_resource_set_dispatcher(this.ptr, implementation.__dispatcherPtr, implementation.__implPtr, implementation.__dataPtr, implementation.__destroyPtr)
+    wlServerCore.interface.wl_resource_set_dispatcher(this.ptr, dispatcher.ptr, implementation.__implPtr, implementation.__dataPtr, implementation.__destroyPtr)
   }
 
   get userData () {

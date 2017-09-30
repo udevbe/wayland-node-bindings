@@ -182,7 +182,7 @@ wfg.ProtocolParser = class {
         }
         firstArg = false
         const argType = arg.$.type
-        if (argType === 'object' && arg.$.hasOwnProperty('interface')) {
+        if ((argType === 'object' || argType === 'new_id') && arg.$.hasOwnProperty('interface')) {
           const argItfName = upperCamelCase(arg.$.interface)
           requires.push(util.format('const %s = require(\'./%s\')\n', argItfName, argItfName))
           body.push(util.format('      %s.interface_.ptr', argItfName))
@@ -213,7 +213,7 @@ wfg.ProtocolParser = class {
     body.push(util.format('    signature: fastcall.makeStringBuffer(\'%d%s\'),\n', sinceVersion, this._signature(itfEvent)))
     body.push('    types: new PointerArray([\n')
     this._parseMessageTypes(requires, body, itfEvent)
-    body.push('\n    ])\n')
+    body.push('\n    ]).buffer\n')
     body.push('  })')
   }
 
@@ -406,7 +406,6 @@ wfg.ProtocolParser = class {
     requires.push('const namespace = wsb.namespace\n')
     requires.push('const native = wsb.native\n')
     requires.push('const WlMessage = native.structs.wl_message.type\n')
-    requires.push('const Dispatcher = wsb.Dispatcher\n')
     requires.push('const Resource = wsb.Resource\n')
     requires.push('const Interface = wsb.Interface\n')
 
@@ -431,7 +430,7 @@ wfg.ProtocolParser = class {
     body.push('  static create (client, version, id, implementation, destroyFunc) {\n')
     body.push('    const resourcePtr = native.interface.wl_resource_create(client.ptr, this.interface_.ptr, version, id)\n')
     body.push(util.format('    const resource = new %s(resourcePtr)\n', itfName))
-    body.push('    resource.setDispatcher(Dispatcher.dispatch, implementation, destroyFunc)\n')
+    body.push('    resource.setDispatcher(implementation, destroyFunc)\n')
     body.push('    return resource\n')
     body.push('  }\n')
 

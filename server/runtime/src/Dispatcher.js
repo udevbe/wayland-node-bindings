@@ -8,17 +8,26 @@ const WlInterface = wlServerCore.structs.wl_interface.type
 const namespace = require('./namespace')
 const Resource = require('./Resource')
 
-module.exports = class Dispatcher {
-  // void *impl, void *object, uint32 opcode, wl_message *signature, ArgsArray args
-  static dispatch (impl, object, opcode, message, wlArgumentArray) {
-    const implementation = impl.readObject(0)
-    const resource = new Resource(object)
-    const args = this._unmarshallArgs(resource, message, wlArgumentArray)
-    implementation[opcode].apply(implementation, args)
-    return 0
+class Dispatcher {
+  constructor () {
+    this.ptr = wlServerCore.interface.wl_dispatcher_func_t(this.dispatch)
   }
 
-  static _unmarshallArgs (resource, wlMessage, wlArgumentArray) {
+  // void *impl, void *object, uint32 opcode, wl_message *signature, ArgsArray args
+  dispatch (impl, object, opcode, message, wlArgumentArray) {
+    try {
+      const implementation = impl.readObject(0)
+      const resource = new Resource(object)
+      const args = this._unmarshallArgs(resource, message, wlArgumentArray)
+      implementation[opcode].apply(implementation, args)
+      return 0
+    } catch (error) {
+      console.error(error)
+      return -1
+    }
+  }
+
+  _unmarshallArgs (resource, wlMessage, wlArgumentArray) {
     const jsArgs = [resource]
     const messageStruct = wlMessage.deref()
     const signature = messageStruct.signature.readCString(0)
@@ -45,24 +54,24 @@ module.exports = class Dispatcher {
     }
   }
 
-  static 'i' (wlArg) {
+  'i' (wlArg) {
     return wlArg.deref().i
   }
 
-  static 'u' (wlArg) {
+  'u' (wlArg) {
     return wlArg.deref().u
   }
 
-  static 'f' (wlArg) {
+  'f' (wlArg) {
     const fixedRaw = wlArg.deref().f
     return fixedRaw / 256.0
   }
 
-  static 'h' (wlArg) {
+  'h' (wlArg) {
     return wlArg.deref().h
   }
 
-  static 'o' (wlArg, optional, resource, wlInterface) {
+  'o' (wlArg, optional, resource, wlInterface) {
     const client = resource.getClient()
     const objectId = wlArg.deref().o
 
@@ -84,19 +93,19 @@ module.exports = class Dispatcher {
     }
   }
 
-  static 'n' (wlArg) {
+  'n' (wlArg) {
     return wlArg.deref().n
   }
 
-  static 's' (wlArg) {
+  's' (wlArg) {
     return wlArg.deref().s.readCString(0)
   }
 
-  static 'a' (wlArg) {
+  'a' (wlArg) {
     return wlArg.deref().a
   }
 
-  static _reconstructResource (resourcePtr, wlInterface) {
+  _reconstructResource (resourcePtr, wlInterface) {
     const itfName = wlInterface.name.readCString(0)
     const itfVersion = wlInterface.version
 
@@ -107,3 +116,5 @@ module.exports = class Dispatcher {
     }
   }
 }
+
+module.exports = new Dispatcher()
