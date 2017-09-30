@@ -201,7 +201,7 @@ wfg.ProtocolParser = class {
     body.push(util.format('    signature: fastcall.makeStringBuffer(\'%d%s\'),\n', sinceVersion, this._signature(itfRequest)))
     body.push('    types: new PointerArray([\n')
     this._parseMessageTypes(requires, body, itfRequest)
-    body.push('\n    ])\n')
+    body.push('\n    ]).buffer\n')
     body.push('  })')
   }
 
