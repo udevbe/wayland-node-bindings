@@ -21,7 +21,8 @@ class Dispatcher {
   dispatch (impl, object, opcode, message, wlArgumentArray) {
     try {
       const implementation = impl.readObject(0)
-      const resource = new implementation.__Resource(object)
+      const Resource = implementation.__Resource
+      const resource = new Resource(object)
       const args = this._unmarshallArgs(resource, message, wlArgumentArray)
       implementation[opcode].apply(implementation, args)
       return 0
@@ -67,6 +68,8 @@ class Dispatcher {
 
       argIdx++
     }
+
+    return jsArgs
   }
 
   'i' (wlArg) {
