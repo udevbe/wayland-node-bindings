@@ -380,7 +380,7 @@ wfg.ProtocolParser = class {
         }
 
         reqBody.push('}\n\n')
-        reqBody.push(util.format('module.exports = %s\n', itfName))
+        reqBody.push(util.format('module.exports = %sRequests\n', itfName))
 
         copyrights.forEach((line) => {
           out.write(line)
