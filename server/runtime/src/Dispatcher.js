@@ -2,15 +2,19 @@
 
 const util = require('util')
 
-const wlServerCore = require('./native')
-const WlInterface = wlServerCore.structs.wl_interface.type
+const native = require('./native')
+const WlMessage = native.structs.wl_message.type
+const WlInterface = native.structs.wl_interface.type
+const fastcall = require('fastcall')
+const WlArgumentArray = fastcall.ArrayType(native.unions.wl_argument.type)
+const PointerArray = fastcall.ArrayType('pointer')
 
 const namespace = require('./namespace')
 const Resource = require('./Resource')
 
 class Dispatcher {
   constructor () {
-    this.ptr = wlServerCore.interface.wl_dispatcher_func_t((impl, object, opcode, message, wlArgumentArray) => { this.dispatch(impl, object, opcode, message, wlArgumentArray) })
+    this.ptr = native.interface.wl_dispatcher_func_t((impl, object, opcode, message, wlArgumentArray) => { this.dispatch(impl, object, opcode, message, wlArgumentArray) })
   }
 
   // void *impl, void *object, uint32 opcode, wl_message *signature, ArgsArray args
@@ -29,6 +33,11 @@ class Dispatcher {
 
   _unmarshallArgs (resource, wlMessage, wlArgumentArray) {
     const jsArgs = [resource]
+    wlMessage = wlMessage.reinterpret(24, 0)
+    wlMessage.type = WlMessage
+
+    wlArgumentArray = new WlArgumentArray(wlArgumentArray)
+
     const messageStruct = wlMessage.deref()
     const signature = messageStruct.signature.readCString(0)
 
@@ -37,6 +46,11 @@ class Dispatcher {
     let argIdx = 0
     let optional = false
     for (; i < len; i++) {
+      if (!isNaN(signature[i])) {
+        // TODO check if hander supports this version?
+        i++
+      }
+
       optional = (signature[i] === '?')
       if (optional) {
         i++
@@ -44,7 +58,8 @@ class Dispatcher {
 
       const signatureChar = signature[i]
       const wlArgument = wlArgumentArray.get(argIdx)
-      const wlInterface = messageStruct.types.get(argIdx)
+      const typesArray = new PointerArray(messageStruct.types)
+      const wlInterface = typesArray.get(argIdx)
       wlInterface.type = WlInterface
 
       const jsArg = this[signatureChar](wlArgument, optional, resource, wlInterface)
@@ -55,25 +70,25 @@ class Dispatcher {
   }
 
   'i' (wlArg) {
-    return wlArg.deref().i
+    return wlArg.i
   }
 
   'u' (wlArg) {
-    return wlArg.deref().u
+    return wlArg.u
   }
 
   'f' (wlArg) {
-    const fixedRaw = wlArg.deref().f
+    const fixedRaw = wlArg.f
     return fixedRaw / 256.0
   }
 
   'h' (wlArg) {
-    return wlArg.deref().h
+    return wlArg.h
   }
 
   'o' (wlArg, optional, resource, wlInterface) {
     const client = resource.getClient()
-    const objectId = wlArg.deref().o
+    const objectId = wlArg.o
 
     if (objectId === 0 && optional) {
       return null
@@ -94,18 +109,19 @@ class Dispatcher {
   }
 
   'n' (wlArg) {
-    return wlArg.deref().n
+    return wlArg.n
   }
 
   's' (wlArg) {
-    return wlArg.deref().s.readCString(0)
+    return wlArg.s.readCString(0)
   }
 
   'a' (wlArg) {
-    return wlArg.deref().a
+    return wlArg.a
   }
 
   _reconstructResource (resourcePtr, wlInterface) {
+    wlInterface = wlInterface.deref()
     const itfName = wlInterface.name.readCString(0)
     const itfVersion = wlInterface.version
 
