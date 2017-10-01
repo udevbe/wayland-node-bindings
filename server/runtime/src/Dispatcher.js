@@ -10,14 +10,14 @@ const Resource = require('./Resource')
 
 class Dispatcher {
   constructor () {
-    this.ptr = wlServerCore.interface.wl_dispatcher_func_t(this.dispatch)
+    this.ptr = wlServerCore.interface.wl_dispatcher_func_t((impl, object, opcode, message, wlArgumentArray) => { this.dispatch(impl, object, opcode, message, wlArgumentArray) })
   }
 
   // void *impl, void *object, uint32 opcode, wl_message *signature, ArgsArray args
   dispatch (impl, object, opcode, message, wlArgumentArray) {
     try {
       const implementation = impl.readObject(0)
-      const resource = new Resource(object)
+      const resource = new implementation.__Resource(object)
       const args = this._unmarshallArgs(resource, message, wlArgumentArray)
       implementation[opcode].apply(implementation, args)
       return 0
