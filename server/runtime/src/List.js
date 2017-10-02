@@ -1,6 +1,6 @@
 'use strict'
 
-const wlServerCore = require('./native')
+const native = require('./native')
 
 class List {
   static * forEach (head, getMember, getLink) {
@@ -11,7 +11,7 @@ class List {
 
   constructor (ptr) {
     this.ptr = ptr
-    this.ptr.type = wlServerCore.structs.wl_list.type
+    this.ptr.type = native.structs.wl_list.type
     this.wlList = this.ptr.deref()
   }
 

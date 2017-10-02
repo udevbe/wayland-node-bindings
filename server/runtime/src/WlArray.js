@@ -1,7 +1,7 @@
 'use strict'
 
-const wlServerCore = require('./native')
-const WlArrayStruct = wlServerCore.structs.wl_array.type
+const native = require('./native')
+const WlArrayStruct = native.structs.wl_array.type
 
 class WlArray {
   static create (buffer) {

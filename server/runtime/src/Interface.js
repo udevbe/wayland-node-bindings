@@ -2,10 +2,10 @@
 
 const fastcall = require('fastcall')
 
-const wlServerCore = require('./native')
-const WlInterface = wlServerCore.structs.wl_interface.type
+const native = require('./native')
+const WlInterface = native.structs.wl_interface.type
 
-const WlMessageArray = fastcall.ArrayType(wlServerCore.structs.wl_message.type)
+const WlMessageArray = fastcall.ArrayType(native.structs.wl_message.type)
 
 class Interface {
   static create (name, version, methods, events) {

@@ -3,7 +3,7 @@
 const fastcall = require('fastcall')
 const ref = fastcall.ref
 
-const wlServerCore = require('./native')
+const native = require('./native')
 
 const EventLoop = require('./EventLoop')
 const Listener = require('./EventLoop')
@@ -11,7 +11,7 @@ const List = require('./List')
 
 class Display {
   static create () {
-    const ptr = wlServerCore.interface.wl_display_create()
+    const ptr = native.interface.wl_display_create()
     return new Display(ptr)
   }
 
@@ -20,11 +20,11 @@ class Display {
   }
 
   destroy () {
-    wlServerCore.interface.wl_display_destroy(this.ptr)
+    native.interface.wl_display_destroy(this.ptr)
   }
 
   get eventLoop () {
-    const eventLoopPtr = wlServerCore.interface.wl_display_get_event_loop(this.ptr)
+    const eventLoopPtr = native.interface.wl_display_get_event_loop(this.ptr)
     return new EventLoop(eventLoopPtr)
   }
 
@@ -34,45 +34,45 @@ class Display {
    */
   addSocket (name) {
     const namePtr = fastcall.makeStringBuffer(name)
-    return wlServerCore.interface.wl_display_add_socket(this.ptr, namePtr)
+    return native.interface.wl_display_add_socket(this.ptr, namePtr)
   }
 
   /**
    * @returns {String}
    */
   addSocketAuto () {
-    const autoNamePtr = wlServerCore.interface.wl_display_add_socket_auto(this.ptr)
+    const autoNamePtr = native.interface.wl_display_add_socket_auto(this.ptr)
     return ref.readCString(autoNamePtr, 0)
   }
 
   addSocketFd (socketFd) {
-    return wlServerCore.interface.wl_display_add_socket_fd(this.ptr, socketFd)
+    return native.interface.wl_display_add_socket_fd(this.ptr, socketFd)
   }
 
   terminate () {
-    wlServerCore.interface.wl_display_terminate(this.ptr)
+    native.interface.wl_display_terminate(this.ptr)
   }
 
   run () {
-    wlServerCore.interface.wl_display_run(this.ptr)
+    native.interface.wl_display_run(this.ptr)
   }
 
   flushClients () {
-    wlServerCore.interface.wl_display_flush_clients(this.ptr)
+    native.interface.wl_display_flush_clients(this.ptr)
   }
 
   /**
    * @returns {number}
    */
   get serial () {
-    return wlServerCore.interface.wl_display_get_serial(this.ptr)
+    return native.interface.wl_display_get_serial(this.ptr)
   }
 
   /**
    * @returns {number}
    */
   nextSerial () {
-    return wlServerCore.interface.wl_display_next_serial(this.ptr)
+    return native.interface.wl_display_next_serial(this.ptr)
   }
 
   /**
@@ -80,7 +80,7 @@ class Display {
    * @param {Listener} listener
    */
   addDestroyListener (listener) {
-    wlServerCore.interface.wl_display_add_destroy_listener(this.ptr, listener.ptr)
+    native.interface.wl_display_add_destroy_listener(this.ptr, listener.ptr)
   }
 
   /**
@@ -88,7 +88,7 @@ class Display {
    * @param {Listener} listener
    */
   addClientCreatedListener (listener) {
-    wlServerCore.interface.wl_display_add_client_created_listener(this.ptr, listener.ptr)
+    native.interface.wl_display_add_client_created_listener(this.ptr, listener.ptr)
   }
 
   /**
@@ -97,12 +97,12 @@ class Display {
    * @returns {Listener}
    */
   getDestroyListener (notify) {
-    const listenerPtr = wlServerCore.interface.wl_display_get_destroy_listener(this.ptr, notify)
+    const listenerPtr = native.interface.wl_display_get_destroy_listener(this.ptr, notify)
     return new Listener(listenerPtr)
   }
 
   setGlobalFilter (filter, data) {
-    wlServerCore.interface.wl_display_set_global_filter(this.ptr, filter, data)
+    native.interface.wl_display_set_global_filter(this.ptr, filter, data)
   }
 
   /**
@@ -110,7 +110,7 @@ class Display {
    * @returns {List}
    */
   get clientList () {
-    const listPtr = wlServerCore.interface.wl_display_get_client_list(this.ptr)
+    const listPtr = native.interface.wl_display_get_client_list(this.ptr)
     return new List(listPtr)
   }
 
@@ -119,7 +119,7 @@ class Display {
    * @returns {Number}
    */
   initShm () {
-    return wlServerCore.interface.wl_display_init_shm(this.ptr)
+    return native.interface.wl_display_init_shm(this.ptr)
   }
 
   /**
@@ -128,7 +128,7 @@ class Display {
    * @returns {Buffer}
    */
   addShmFormat (format) {
-    return wlServerCore.interface.wl_display_add_shm_format(this.ptr, format)
+    return native.interface.wl_display_add_shm_format(this.ptr, format)
   }
 }
 

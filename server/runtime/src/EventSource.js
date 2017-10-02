@@ -1,6 +1,6 @@
 'use strict'
 
-const wlServerCore = require('./native')
+const native = require('./native')
 
 class EventSource {
   constructor (ptr) {
@@ -12,7 +12,7 @@ class EventSource {
    * @returns {number}
    */
   fdUpdate (mask) {
-    return wlServerCore.interface.wl_event_source_fd_update(this.ptr, mask)
+    return native.interface.wl_event_source_fd_update(this.ptr, mask)
   }
 
   /**
@@ -21,18 +21,18 @@ class EventSource {
    * @returns {number}
    */
   timerUpdate (delay) {
-    return wlServerCore.interface.wl_event_source_timer_update(this.ptr, delay)
+    return native.interface.wl_event_source_timer_update(this.ptr, delay)
   }
 
   /**
    * @returns {number}
    */
   remove () {
-    return wlServerCore.interface.wl_event_source_remove(this.ptr)
+    return native.interface.wl_event_source_remove(this.ptr)
   }
 
   check () {
-    wlServerCore.interface.wl_event_source_check(this.ptr)
+    native.interface.wl_event_source_check(this.ptr)
   }
 }
 
