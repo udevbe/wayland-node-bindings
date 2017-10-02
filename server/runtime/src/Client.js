@@ -1,9 +1,8 @@
 'use strict'
 
-const wlServerCore = require('./native')
+const native = require('./native')
 
 const Listener = require('./Listener')
-const Resource = require('./Resource')
 const Display = require('./Display')
 const List = require('./List')
 
@@ -14,7 +13,7 @@ class Client {
    * @param {number}fd
    */
   static create (display, fd) {
-    const clientPtr = wlServerCore.interface.wl_client_create(display.ptr, fd)
+    const clientPtr = native.interface.wl_client_create(display.ptr, fd)
     return new Client(clientPtr)
   }
 
@@ -23,7 +22,7 @@ class Client {
    * @param {List} list
    */
   static fromLink (list) {
-    const clientPtr = wlServerCore.interface.wl_client_from_link(list.ptr)
+    const clientPtr = native.interface.wl_client_from_link(list.ptr)
     return new Client(clientPtr)
   }
 
@@ -32,29 +31,27 @@ class Client {
   }
 
   destroy () {
-    wlServerCore.interface.wl_client_destroy(this.ptr)
+    native.interface.wl_client_destroy(this.ptr)
   }
 
   /**
    * @returns {List}
    */
   get link () {
-    const listPtr = wlServerCore.interface.wl_client_get_link(this.ptr)
+    const listPtr = native.interface.wl_client_get_link(this.ptr)
     return new List(listPtr)
   }
 
   flush () {
-    wlServerCore.interface.wl_client_flush(this.ptr)
+    native.interface.wl_client_flush(this.ptr)
   }
-
-// lib.function('void wl_client_get_credentials(wl_client *client, pid_t *pid, uid_t *uid, gid_t *gid)')
 
   /**
    *
    * @returns {number}
    */
   get fd () {
-    return wlServerCore.interface.wl_client_get_fd(this.ptr)
+    return native.interface.wl_client_get_fd(this.ptr)
   }
 
   /**
@@ -62,11 +59,11 @@ class Client {
    * @param {Listener} listener
    */
   addDestroyListener (listener) {
-    wlServerCore.interface.wl_client_add_destroy_listener(this.ptr, listener.ptr)
+    native.interface.wl_client_add_destroy_listener(this.ptr, listener.ptr)
   }
 
   getDestroyListener (notify) {
-    const listenerPtr = wlServerCore.interface.wl_client_get_destroy_listener(this.ptr, notify)
+    const listenerPtr = native.interface.wl_client_get_destroy_listener(this.ptr, notify)
     return new Listener(listenerPtr)
   }
 
@@ -75,23 +72,26 @@ class Client {
    * @param {number}id
    */
   getObject (id) {
-    const resourcePtr = wlServerCore.interface.wl_client_get_object(this.ptr, id)
+    const resourcePtr = native.interface.wl_client_get_object(this.ptr, id)
+    const impl = native.interface.wl_resource_get_user_data(resourcePtr)
+    const implementation = impl.readObject(0)
+    const Resource = implementation.__Resource
     return new Resource(resourcePtr)
   }
 
   noMemory () {
-    wlServerCore.interface.wl_client_post_no_memory(this.ptr)
+    native.interface.wl_client_post_no_memory(this.ptr)
   }
 
   addResourceCreatedListener (listener) {
-    wlServerCore.interface.wl_client_add_resource_created_listener(this.ptr, listener.ptr)
+    native.interface.wl_client_add_resource_created_listener(this.ptr, listener.ptr)
   }
 
   /**
    * @returns {Display}
    */
   get display () {
-    const displayPtr = wlServerCore.interface.wl_client_get_display(this.ptr)
+    const displayPtr = native.interface.wl_client_get_display(this.ptr)
     return new Display(displayPtr)
   }
 }
