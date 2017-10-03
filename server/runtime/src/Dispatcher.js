@@ -62,7 +62,7 @@ class Dispatcher {
       const wlInterface = typesArray.get(argIdx)
       wlInterface.type = WlInterface
 
-      const jsArg = this[signatureChar](wlArgument, optional, resource, wlInterface)
+      const jsArg = this[signatureChar](wlArgument, optional, wlInterface)
       jsArgs.push(jsArg)
 
       argIdx++
@@ -88,7 +88,7 @@ class Dispatcher {
     return wlArg.h
   }
 
-  'o' (wlArg, optional, resource, wlInterface) {
+  'o' (wlArg, optional, wlInterface) {
     const resourcePtr = wlArg.o
 
     // FIXME how to check for null pointer?
@@ -98,8 +98,7 @@ class Dispatcher {
       const jsResourcePtr = native.interface.wl_resource_get_user_data(resourcePtr)
       if (jsResourcePtr !== null) {
         // data will hold the more specific js object that extends Resource
-        const jsResource = jsResourcePtr.readObject(0)
-        return jsResource
+        return jsResourcePtr.readObject(0)
       } else {
         // If data is null, we're dealing with a C implemented resource that was not created by us. As such no
         // specific js object was created earlier. We reconstruct the js object that extends Resource (but without
