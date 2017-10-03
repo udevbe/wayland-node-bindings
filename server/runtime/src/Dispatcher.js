@@ -10,7 +10,6 @@ const WlArgumentArray = fastcall.ArrayType(native.unions.wl_argument.type)
 const PointerArray = fastcall.ArrayType('pointer')
 
 const namespace = require('./namespace')
-const Resource = require('./Resource')
 
 class Dispatcher {
   constructor () {
@@ -21,9 +20,9 @@ class Dispatcher {
   dispatch (impl, object, opcode, message, wlArgumentArray) {
     try {
       const implementation = impl.readObject(0)
-      const Resource = implementation.__Resource
-      const resource = new Resource(object)
-      const args = this._unmarshallArgs(resource, message, wlArgumentArray)
+      const jsResourcePtr = native.interface.wl_resource_get_user_data(object)
+      const jsResource = jsResourcePtr.readObject(0)
+      const args = this._unmarshallArgs(jsResource, message, wlArgumentArray)
       implementation[opcode].apply(implementation, args)
       return 0
     } catch (error) {
@@ -90,22 +89,21 @@ class Dispatcher {
   }
 
   'o' (wlArg, optional, resource, wlInterface) {
-    const client = resource.getClient()
+    const client = resource.client
     const objectId = wlArg.o
 
     if (objectId === 0 && optional) {
       return null
     } else {
-      const resourcePtr = client.getObject(objectId)
-      const genericResourceArg = new Resource(resourcePtr)
-      const data = genericResourceArg.userData
-      if (data !== Buffer.NULL_POINTER) {
+      const jsResource = client.getObject(objectId)
+      if (jsResource !== null) {
         // data will hold the more specific js object that extends Resource
-        return data.readObject(0)
+        return jsResource
       } else {
         // If data is null, we're dealing with a C implemented resource that was not created by us. As such no
         // specific js object was created earlier. We reconstruct the js object that extends Resource (but without
         // a js requests implementation).
+        const resourcePtr = native.interface.wl_client_get_object(client.ptr, objectId)
         return this._reconstructResource(resourcePtr, wlInterface)
       }
     }

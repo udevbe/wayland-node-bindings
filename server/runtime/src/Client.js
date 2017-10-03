@@ -73,10 +73,11 @@ class Client {
    */
   getObject (id) {
     const resourcePtr = native.interface.wl_client_get_object(this.ptr, id)
-    const impl = native.interface.wl_resource_get_user_data(resourcePtr)
-    const implementation = impl.readObject(0)
-    const Resource = implementation.__Resource
-    return new Resource(resourcePtr)
+    const jsResourcePtr = native.interface.wl_resource_get_user_data(resourcePtr)
+    if (jsResourcePtr === null) {
+      return null
+    }
+    return jsResourcePtr.readObject(0)
   }
 
   noMemory () {
