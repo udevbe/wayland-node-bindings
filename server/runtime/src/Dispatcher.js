@@ -89,21 +89,21 @@ class Dispatcher {
   }
 
   'o' (wlArg, optional, resource, wlInterface) {
-    const client = resource.client
-    const objectId = wlArg.o
+    const resourcePtr = wlArg.o
 
-    if (objectId === 0 && optional) {
+    // FIXME how to check for null pointer?
+    if (resourcePtr === 0 && optional) {
       return null
     } else {
-      const jsResource = client.getObject(objectId)
-      if (jsResource !== null) {
+      const jsResourcePtr = native.interface.wl_resource_get_user_data(resourcePtr)
+      if (jsResourcePtr !== null) {
         // data will hold the more specific js object that extends Resource
+        const jsResource = jsResourcePtr.readObject(0)
         return jsResource
       } else {
         // If data is null, we're dealing with a C implemented resource that was not created by us. As such no
         // specific js object was created earlier. We reconstruct the js object that extends Resource (but without
         // a js requests implementation).
-        const resourcePtr = native.interface.wl_client_get_object(client.ptr, objectId)
         return this._reconstructResource(resourcePtr, wlInterface)
       }
     }

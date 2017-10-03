@@ -75,6 +75,7 @@ class Resource {
     implementation.__implPtr.writeObject(implementation, 0)
     implementation.__dataPtr = ref.alloc('Object')
     implementation.__dataPtr.writeObject(this, 0)
+    this.implementation = implementation
     native.interface.wl_resource_set_dispatcher(this.ptr, dispatcher.ptr, implementation.__implPtr, implementation.__dataPtr, implementation.__destroyPtr)
   }
 
