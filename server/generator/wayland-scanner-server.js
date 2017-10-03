@@ -365,7 +365,6 @@ wfg.ProtocolParser = class {
 
         // constructor
         reqBody.push('  constructor () {\n')
-        reqBody.push(util.format('    this.__Resource = require(\'./%s\')\n', itfName))
         for (let j = 0; j < itfRequests.length; j++) {
           const itfRequest = itfRequests[j]
           const reqName = camelCase(itfRequest.$.name)
