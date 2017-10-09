@@ -56,6 +56,10 @@ class Dispatcher {
         i++
       }
 
+      if (i >= len) {
+        break
+      }
+
       const signatureChar = signature[i]
       const wlArgument = wlArgumentArray.get(argIdx)
       const typesArray = new PointerArray(messageStruct.types)
