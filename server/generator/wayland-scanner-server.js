@@ -483,6 +483,7 @@ wfg.ProtocolParser = class {
 
     // module exports
     body.push(util.format('namespace.%s = %s\n', itfName, itfName))
+    body.push(util.format('namespace.%s = %s\n', protocolItf.$.name, itfName))
     body.push(util.format('module.exports = %s\n', itfName))
 
     let out
