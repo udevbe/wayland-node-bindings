@@ -1,18 +1,42 @@
 'use strict'
 
 const native = require('./native')
+const WlWrapper = native.structs.wl_wrapper.type
+
 const EventSource = require('./EventSource')
-const Listener = require('./Listener')
+const Wrapper = require('./Wrapper')
 
 class EventLoop {
+  static getJSObject (displayPtr) {
+    let wlWrapperPtr = native.interface.wl_event_loop_get_destroy_listener(displayPtr, EventLoop._destroyPtr)
+    if (wlWrapperPtr.address() === 0) {
+      const eventLoop = new EventLoop(displayPtr)
+      const wrapper = Wrapper.create(EventLoop._destroyPtr, eventLoop)
+      native.interface.wl_event_loop_add_destroy_listener(eventLoop.ptr, wrapper.ptr)
+      return eventLoop
+    }
+    wlWrapperPtr = wlWrapperPtr.reinterpret(40, 0)
+    wlWrapperPtr.type = WlWrapper
+    const wlWrapper = wlWrapperPtr.deref()
+    return wlWrapper.jsobject.readObject(0)
+  }
+
   static create () {
     const ptr = native.interface.wl_event_loop_create()
-    return new EventLoop(ptr)
+    return EventLoop.getJSObject(ptr)
   }
 
   constructor (ptr) {
     this.ptr = ptr
-    this.listeners = []
+    this._destroyListeners = []
+    this.destroyPromise = new Promise((resolve) => {
+      this._destroyResolve = resolve
+    })
+    this.destroyPromise.then(() => {
+      this._destroyListeners.forEach((listener) => {
+        listener(this)
+      })
+    })
   }
 
   destroy () {
@@ -52,16 +76,29 @@ class EventLoop {
   }
 
   addDestroyListener (listener) {
-    // keep ref to avoid gc
-    this.listeners.push(listener)
-    native.interface.wl_event_loop_add_destroy_listener(this.ptr, listener.ptr)
+    this._destroyListeners.push(listener)
   }
 
-  getDestroyListener (notify) {
-    const listenerPtr = native.interface.wl_event_loop_get_destroy_listener(this.ptr, notify)
-    return new Listener(listenerPtr)
+  removeDestroyListener (listener) {
+    const index = this._destroyListeners.indexOf(listener)
+    if (index > -1) {
+      this._destroyListeners.splice(index, 1)
+    }
+  }
+
+  onDestroy () {
+    return this._destroyResolve
   }
 }
+
+EventLoop._destroyPtr = native.interface.wl_notify_func_t((listener, data) => {
+  listener.type = WlWrapper
+  const wlWrapper = listener.deref()
+  const eventLoop = wlWrapper.jsobject.readObject(0)
+  eventLoop._destroyResolve(eventLoop)
+  const wrapper = wlWrapper.jswrapper.readObject(0)
+  wrapper.unref()
+})
 
 require('./namespace').wl_event_loop = EventLoop
 module.exports = EventLoop

@@ -7,9 +7,22 @@ const native = require('./native')
 
 const List = require('./List')
 const Client = require('./Client')
-const dispatcher = require('./Dispatcher')
+const Wrapper = require('./Wrapper')
+const WlWrapper = native.structs.wl_wrapper.type
 
 class Resource {
+  // TODO do the same for event loop
+  static getJSObject (resourcePtr) {
+    let wlWrapperPtr = native.interface.wl_resource_get_destroy_listener(resourcePtr, Resource._destroyPtr)
+    if (wlWrapperPtr.address() === 0) {
+      return null
+    }
+    wlWrapperPtr = wlWrapperPtr.reinterpret(40, 0)
+    wlWrapperPtr.type = WlWrapper
+    const wlWrapper = wlWrapperPtr.deref()
+    return wlWrapper.jsobject.readObject(0)
+  }
+
   /**
    *
    * @param {List} list
@@ -17,8 +30,7 @@ class Resource {
    */
   static fromLink (list) {
     const resourcePtr = native.interface.wl_resource_from_link(list.ptr)
-    const dataPtr = native.interface.wl_resource_get_user_data(resourcePtr)
-    return dataPtr.readObject(0)
+    return Resource.getJSObject(resourcePtr)
   }
 
   /**
@@ -29,12 +41,20 @@ class Resource {
    */
   static findForClient (list, client) {
     const resourcePtr = native.interface.wl_resource_find_for_client(list.ptr, client.ptr)
-    const dataPtr = native.interface.wl_resource_get_user_data(resourcePtr)
-    return dataPtr.readObject(0)
+    return Resource.getJSObject(resourcePtr)
   }
 
   constructor (ptr) {
     this.ptr = ptr
+    this._destroyListeners = []
+    this.destroyPromise = new Promise((resolve) => {
+      this._destroyResolve = resolve
+    })
+    this.destroyPromise.then(() => {
+      this._destroyListeners.forEach((listener) => {
+        listener(this)
+      })
+    })
   }
 
   /**
@@ -69,18 +89,11 @@ class Resource {
     native.interface.wl_resource_post_no_memory(this.ptr)
   }
 
-  setDispatcher (implementation, destroy) {
-    implementation.__destroyPtr = destroy === null ? ref.NULL_POINTER : native.interface.wl_resource_destroy_func_t(destroy)
-    implementation.__implPtr = ref.alloc('Object')
-    implementation.__implPtr.writeObject(implementation, 0)
-    implementation.__dataPtr = ref.alloc('Object')
-    implementation.__dataPtr.writeObject(this, 0)
+  setDispatcher (implementation) {
     this.implementation = implementation
-    native.interface.wl_resource_set_dispatcher(this.ptr, dispatcher.ptr, implementation.__implPtr, implementation.__dataPtr, implementation.__destroyPtr)
-  }
-
-  get userData () {
-    return native.interface.wl_resource_get_user_data(this.ptr)
+    const wrapper = Wrapper.create(Resource._destroyPtr, this)
+    native.interface.wl_resource_add_destroy_listener(this.ptr, wrapper.ptr)
+    native.interface.wl_resource_set_dispatcher(this.ptr, require('./Dispatcher').ptr, ref.NULL_POINTER, ref.NULL_POINTER, ref.NULL_POINTER)
   }
 
   destroy () {
@@ -107,7 +120,7 @@ class Resource {
    */
   get client () {
     const clientPtr = native.interface.wl_resource_get_client(this.ptr)
-    return new Client(clientPtr)
+    return Client.getJSObject(clientPtr)
   }
 
   /**
@@ -121,6 +134,21 @@ class Resource {
     native.interface.wl_resource_set_destructor(this.ptr, destroy)
   }
 
+  addDestroyListener (listener) {
+    this._destroyListeners.push(listener)
+  }
+
+  removeDestroyListener (listener) {
+    const index = this._destroyListeners.indexOf(listener)
+    if (index > -1) {
+      this._destroyListeners.splice(index, 1)
+    }
+  }
+
+  onDestroy () {
+    return this._destroyResolve
+  }
+
   /**
    * @return {string}
    */
@@ -128,15 +156,16 @@ class Resource {
     const classPtr = native.interface.wl_resource_get_class(this.ptr)
     return ref.readCString(classPtr, 0)
   }
-
-  /**
-   *
-   * @param {Listener} listener
-   */
-  addDestroyListener (listener) {
-    native.interface.wl_resource_add_destroy_listener(this.ptr, listener.ptr)
-  }
 }
+
+Resource._destroyPtr = native.interface.wl_notify_func_t((listener, data) => {
+  listener.type = WlWrapper
+  const wlWrapper = listener.deref()
+  const resource = wlWrapper.jsobject.readObject(0)
+  resource._destroyResolve(resource)
+  const wrapper = wlWrapper.jswrapper.readObject(0)
+  wrapper.unref()
+})
 
 require('./namespace').wl_resource = Resource
 module.exports = Resource

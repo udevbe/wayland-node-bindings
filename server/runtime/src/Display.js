@@ -4,19 +4,68 @@ const fastcall = require('fastcall')
 const ref = fastcall.ref
 
 const native = require('./native')
+const WlWrapper = native.structs.wl_wrapper.type
+const WlListener = native.structs.wl_listener.type
 
 const EventLoop = require('./EventLoop')
-const Listener = require('./EventLoop')
 const List = require('./List')
+const Wrapper = require('./Wrapper')
+const Client = require('./Client')
 
 class Display {
+  static getJSObject (displayPtr) {
+    let wlWrapperPtr = native.interface.wl_display_get_destroy_listener(displayPtr, Display._destroyPtr)
+    if (wlWrapperPtr.address() === 0) {
+      const display = new Display(displayPtr)
+      const wrapper = Wrapper.create(Display._destroyPtr, display)
+      native.interface.wl_display_add_destroy_listener(display.ptr, wrapper.ptr)
+      return display
+    }
+    wlWrapperPtr = wlWrapperPtr.reinterpret(40, 0)
+    wlWrapperPtr.type = WlWrapper
+    const wlWrapper = wlWrapperPtr.deref()
+    return wlWrapper.jsobject.readObject(0)
+  }
+
   static create () {
     const ptr = native.interface.wl_display_create()
-    return new Display(ptr)
+    return Display.getJSObject(ptr)
   }
 
   constructor (ptr) {
     this.ptr = ptr
+    this._destroyListeners = []
+    this.destroyPromise = new Promise((resolve) => {
+      this._destroyResolve = resolve
+    })
+    this.destroyPromise.then(() => {
+      this._destroyListeners.forEach((listener) => {
+        listener(this)
+      })
+    })
+    this._onClientCreatedPtr = native.interface.wl_notify_func_t((listener, data) => { this._onClientCreated(data) })
+    this._clientCreatedListener = new WlListener({
+      link: null,
+      notify: this._onClientCreatedPtr
+    })
+    native.interface.wl_display_add_client_created_listener(this.ptr, this._clientCreatedListener.ref())
+    this._clientCreatedListeners = []
+  }
+
+  _onClientCreated (data) {
+    const client = Client.getJSObject(data)
+    this._clientCreatedListeners.forEach((listener) => { listener(client) })
+  }
+
+  removeClientCreatedListener (listener) {
+    const index = this._clientCreatedListeners.indexOf(listener)
+    if (index > -1) {
+      this._clientCreatedListeners.splice(index, 1)
+    }
+  }
+
+  addClientCreatedListener (listener) {
+    this._clientCreatedListeners.push(listener)
   }
 
   destroy () {
@@ -25,7 +74,7 @@ class Display {
 
   get eventLoop () {
     const eventLoopPtr = native.interface.wl_display_get_event_loop(this.ptr)
-    return new EventLoop(eventLoopPtr)
+    return EventLoop.getJSObject(eventLoopPtr)
   }
 
   /**
@@ -75,30 +124,19 @@ class Display {
     return native.interface.wl_display_next_serial(this.ptr)
   }
 
-  /**
-   *
-   * @param {Listener} listener
-   */
   addDestroyListener (listener) {
-    native.interface.wl_display_add_destroy_listener(this.ptr, listener.ptr)
+    this._destroyListeners.push(listener)
   }
 
-  /**
-   *
-   * @param {Listener} listener
-   */
-  addClientCreatedListener (listener) {
-    native.interface.wl_display_add_client_created_listener(this.ptr, listener.ptr)
+  removeDestroyListener (listener) {
+    const index = this._destroyListeners.indexOf(listener)
+    if (index > -1) {
+      this._destroyListeners.splice(index, 1)
+    }
   }
 
-  /**
-   *
-   * @param notify
-   * @returns {Listener}
-   */
-  getDestroyListener (notify) {
-    const listenerPtr = native.interface.wl_display_get_destroy_listener(this.ptr, notify)
-    return new Listener(listenerPtr)
+  onDestroy () {
+    return this._destroyResolve
   }
 
   setGlobalFilter (filter, data) {
@@ -131,6 +169,15 @@ class Display {
     return native.interface.wl_display_add_shm_format(this.ptr, format)
   }
 }
+
+Display._destroyPtr = native.interface.wl_notify_func_t((listener, data) => {
+  listener.type = WlWrapper
+  const wlWrapper = listener.deref()
+  const display = wlWrapper.jsobject.readObject(0)
+  display._destroyResolve(display)
+  const wrapper = wlWrapper.jswrapper.readObject(0)
+  wrapper.unref()
+})
 
 require('./namespace').wl_display = Display
 module.exports = Display

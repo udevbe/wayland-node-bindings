@@ -29,6 +29,9 @@ lib.declare('void (*wl_notify_func_t)(void *listener, void *data)')
 // server
 lib.struct('struct wl_listener { wl_list link; wl_notify_func_t notify; }')
 
+// bindings wrapper
+lib.declare('struct wl_wrapper { wl_listener listener; void* jsobject; void* jswrapper; }')
+
 // wl_event_loop
 lib.declare('int (*wl_event_loop_fd_func_t)(int fd, uint32 mask, void *data)')
 lib.declare('int (*wl_event_loop_timer_func_t)(void *data)')

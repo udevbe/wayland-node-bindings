@@ -1,13 +1,13 @@
 'use strict'
 
-const util = require('util')
-
 const native = require('./native')
 const WlMessage = native.structs.wl_message.type
 const WlInterface = native.structs.wl_interface.type
 const fastcall = require('fastcall')
 const WlArgumentArray = fastcall.ArrayType(native.unions.wl_argument.type)
 const PointerArray = fastcall.ArrayType('pointer')
+const Resource = require('./Resource')
+const Wrapper = require('./Wrapper')
 
 const namespace = require('./namespace')
 
@@ -19,9 +19,8 @@ class Dispatcher {
   // void *impl, void *object, uint32 opcode, wl_message *signature, ArgsArray args
   dispatch (impl, object, opcode, message, wlArgumentArray) {
     try {
-      const implementation = impl.readObject(0)
-      const jsResourcePtr = native.interface.wl_resource_get_user_data(object)
-      const jsResource = jsResourcePtr.readObject(0)
+      const jsResource = Resource.getJSObject(object)
+      const implementation = jsResource.implementation
       const args = this._unmarshallArgs(jsResource, message, wlArgumentArray)
       implementation[opcode].apply(implementation, args)
       return 0
@@ -94,20 +93,18 @@ class Dispatcher {
 
   'o' (wlArg, optional, wlInterface) {
     const resourcePtr = wlArg.o
-
     // FIXME how to check for null pointer?
     if (resourcePtr === 0 && optional) {
       return null
     } else {
-      const jsResourcePtr = native.interface.wl_resource_get_user_data(resourcePtr)
-      if (jsResourcePtr !== null) {
-        // data will hold the more specific js object that extends Resource
-        return jsResourcePtr.readObject(0)
-      } else {
+      const jsResource = Resource.getJSObject(resourcePtr)
+      if (jsResource === null) {
         // If data is null, we're dealing with a C implemented resource that was not created by us. As such no
         // specific js object was created earlier. We reconstruct the js object that extends Resource (but without
         // a js requests implementation).
         return this._reconstructResource(resourcePtr, wlInterface)
+      } else {
+        return jsResource
       }
     }
   }
@@ -127,13 +124,10 @@ class Dispatcher {
   _reconstructResource (resourcePtr, wlInterface) {
     wlInterface = wlInterface.deref()
     const itfName = wlInterface.name.readCString(0)
-    const itfVersion = wlInterface.version
-
-    if (itfVersion > 1) {
-      return new namespace[util.format('%sV%d', itfName, itfVersion)](resourcePtr)
-    } else {
-      return new namespace[itfName](resourcePtr)
-    }
+    const jsResource = new namespace[itfName](resourcePtr)
+    const wrapper = Wrapper.create(Resource._destroyPtr, jsResource)
+    native.interface.wl_resource_add_destroy_listener(resourcePtr, wrapper.ptr)
+    return jsResource
   }
 }
 
