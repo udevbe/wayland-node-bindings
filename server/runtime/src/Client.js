@@ -128,6 +128,7 @@ class Client {
 }
 
 Client._destroyPtr = native.interface.wl_notify_func_t((listener, data) => {
+  listener = listener.reinterpret(40, 0)
   listener.type = WlWrapper
   const wlWrapper = listener.deref()
   const client = wlWrapper.jsobject.readObject(0)

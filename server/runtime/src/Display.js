@@ -171,6 +171,7 @@ class Display {
 }
 
 Display._destroyPtr = native.interface.wl_notify_func_t((listener, data) => {
+  listener = listener.reinterpret(40, 0)
   listener.type = WlWrapper
   const wlWrapper = listener.deref()
   const display = wlWrapper.jsobject.readObject(0)

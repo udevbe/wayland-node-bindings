@@ -92,6 +92,7 @@ class EventLoop {
 }
 
 EventLoop._destroyPtr = native.interface.wl_notify_func_t((listener, data) => {
+  listener = listener.reinterpret(40, 0)
   listener.type = WlWrapper
   const wlWrapper = listener.deref()
   const eventLoop = wlWrapper.jsobject.readObject(0)

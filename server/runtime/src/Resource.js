@@ -93,7 +93,7 @@ class Resource {
     this.implementation = implementation
     const wrapper = Wrapper.create(Resource._destroyPtr, this)
     native.interface.wl_resource_add_destroy_listener(this.ptr, wrapper.ptr)
-    native.interface.wl_resource_set_dispatcher(this.ptr, require('./Dispatcher').ptr, ref.NULL_POINTER, ref.NULL_POINTER, ref.NULL_POINTER)
+    native.interface.wl_resource_set_dispatcher(this.ptr, require('./Dispatcher').ptr, null, null, null)
   }
 
   destroy () {
@@ -159,6 +159,7 @@ class Resource {
 }
 
 Resource._destroyPtr = native.interface.wl_notify_func_t((listener, data) => {
+  listener = listener.reinterpret(40, 0)
   listener.type = WlWrapper
   const wlWrapper = listener.deref()
   const resource = wlWrapper.jsobject.readObject(0)

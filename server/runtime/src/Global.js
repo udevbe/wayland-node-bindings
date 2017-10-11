@@ -1,7 +1,5 @@
 'use strict'
 
-const NULL = require('fastcall').ref.NULL_POINTER
-
 const native = require('./native')
 const Interface = require('./Interface')
 const Client = require('./Client')
@@ -9,7 +7,7 @@ const Client = require('./Client')
 class Global {
   constructor (display, interface_, version) {
     this._bind_ptr = native.interface.wl_global_bind_func_t((client, data, version, id) => { this._bind(client, version, id) })
-    this.ptr = native.interface.wl_global_create(display.ptr, interface_.ptr, version, NULL, this._bind_ptr)
+    this.ptr = native.interface.wl_global_create(display.ptr, interface_.ptr, version, null, this._bind_ptr)
   }
 
   destroy () {

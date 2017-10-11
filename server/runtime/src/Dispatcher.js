@@ -62,7 +62,7 @@ class Dispatcher {
       const signatureChar = signature[i]
       const wlArgument = wlArgumentArray.get(argIdx)
       const typesArray = new PointerArray(messageStruct.types)
-      const wlInterface = typesArray.get(argIdx)
+      const wlInterface = typesArray.get(argIdx).reinterpret(40, 0)
       wlInterface.type = WlInterface
 
       const jsArg = this[signatureChar](wlArgument, optional, wlInterface)
