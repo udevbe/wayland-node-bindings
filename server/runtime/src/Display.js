@@ -35,10 +35,10 @@ class Display {
   constructor (ptr) {
     this.ptr = ptr
     this._destroyListeners = []
-    this.destroyPromise = new Promise((resolve) => {
+    this._destroyPromise = new Promise((resolve) => {
       this._destroyResolve = resolve
     })
-    this.destroyPromise.then(() => {
+    this._destroyPromise.then(() => {
       this._destroyListeners.forEach((listener) => {
         listener(this)
       })

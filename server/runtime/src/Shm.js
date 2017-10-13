@@ -6,6 +6,9 @@ const ShmPool = require('./ShmPool')
 module.exports = class Shm {
   static get (buffer) {
     const shmPtr = native.interface.wl_shm_buffer_get(buffer.ptr)
+    if (shmPtr.address() === 0) {
+      return null
+    }
     return new Shm(shmPtr)
   }
 
