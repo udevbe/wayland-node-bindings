@@ -219,9 +219,6 @@ wfg.ProtocolParser = class {
 
   _parseItfEvent (requires, body, itfEvent, opcode, itfVersion) {
     const sinceVersion = itfEvent.$.hasOwnProperty('since') ? parseInt(itfEvent.$.since) : 1
-    if (sinceVersion !== itfVersion) {
-      return
-    }
 
     const eventName = camelCase(itfEvent.$.name)
 
