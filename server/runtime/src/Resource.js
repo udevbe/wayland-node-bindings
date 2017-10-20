@@ -59,24 +59,6 @@ class Resource {
 
   /**
    *
-   * @param {number} opcode
-   * @param {Arguments} args
-   */
-  postEventArray (opcode, args) {
-    native.interface.wl_resource_post_event_array(this.ptr, opcode, args.ptr)
-  }
-
-  /**
-   *
-   * @param {number} opcode
-   * @param {Arguments} args
-   */
-  queueEventArray (opcode, args) {
-    native.interface.wl_resource_queue_event_array(this.ptr, opcode, args.ptr)
-  }
-
-  /**
-   *
    * @param {number} code
    * @param {string} msg
    */
