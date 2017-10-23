@@ -139,9 +139,9 @@ class Display {
     return this._destroyResolve
   }
 
-  setGlobalFilter (filter, data) {
-    native.interface.wl_display_set_global_filter(this.ptr, filter, data)
-  }
+  // setGlobalFilter (filter, data) {
+  //   native.interface.wl_display_set_global_filter(this.ptr, filter, data)
+  // }
 
   /**
    *

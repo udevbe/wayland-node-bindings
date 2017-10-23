@@ -71,7 +71,7 @@ lib.function('void wl_client_add_resource_created_listener(void *client, wl_list
 lib.function('void *wl_client_get_display(void *client)')
 
 // wl_display
-lib.declare('bool (*wl_display_global_filter_func_t)(void *client, void *global, void *data)')
+// lib.declare('bool (*wl_display_global_filter_func_t)(void *client, void *global, void *data)')
 lib.function('void *wl_display_create()')
 lib.function('void wl_display_destroy(void *display)')
 lib.function('void *wl_display_get_event_loop(void *display)')
@@ -86,7 +86,7 @@ lib.function('uint32 wl_display_next_serial(void *display)')
 lib.function('void wl_display_add_destroy_listener(void *display, wl_listener *listener)')
 lib.function('void wl_display_add_client_created_listener(void *display, wl_listener *listener)')
 lib.function('wl_listener * wl_display_get_destroy_listener(void *display, wl_notify_func_t notify)')
-lib.function('void wl_display_set_global_filter(void *display, wl_display_global_filter_func_t filter, void *data)')
+// lib.function('void wl_display_set_global_filter(void *display, wl_display_global_filter_func_t filter, void *data)')
 lib.function('wl_list *wl_display_get_client_list(void *display)')
 lib.function('int wl_display_init_shm(void *display)')
 lib.function('uint32 *wl_display_add_shm_format(void *display, uint32 format)')
