@@ -1,7 +1,6 @@
 'use strict'
 
 const native = require('./native')
-const Interface = require('./Interface')
 const Client = require('./Client')
 
 class Global {
@@ -12,15 +11,6 @@ class Global {
 
   destroy () {
     native.interface.wl_global_destroy(this.ptr)
-  }
-
-  get interface () {
-    const interfacePtr = native.interface.wl_global_get_interface(this.ptr)
-    return new Interface(interfacePtr)
-  }
-
-  get userData () {
-    native.interface.wl_global_get_user_data(this.ptr)
   }
 
   _bind (wlClientPtr, version, id) {
