@@ -65,7 +65,7 @@ class Dispatcher {
       const wlInterface = typesArray.get(argIdx).reinterpret(40, 0)
       wlInterface.type = WlInterface
 
-      const jsArg = this[signatureChar](wlArgument, optional, wlInterface)
+      const jsArg = this[signatureChar](wlArgument, wlInterface)
       jsArgs.push(jsArg)
 
       argIdx++
@@ -91,10 +91,9 @@ class Dispatcher {
     return wlArg.h
   }
 
-  'o' (wlArg, optional, wlInterface) {
+  'o' (wlArg, wlInterface) {
     const resourcePtr = wlArg.o
-    // FIXME how to check for null pointer?
-    if (resourcePtr === 0 && optional) {
+    if (resourcePtr.isNull()) {
       return null
     } else {
       const jsResource = Resource.getJSObject(resourcePtr)
