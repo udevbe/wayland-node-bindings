@@ -42,7 +42,7 @@ module.exports = {
   },
 
   _object: (arg) => {
-    return new WlArgument({o: arg})
+    return new WlArgument({o: arg.ptr})
   },
 
   _newObject: (arg) => {
