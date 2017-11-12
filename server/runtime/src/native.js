@@ -10,7 +10,7 @@ const lib = new Library('libwayland-server.so.0', {
 // util
 lib.struct('struct wl_list { void *prev; void *next; }')
 lib.struct('struct wl_array { size_t size; size_t alloc; void *data; }')
-lib.union('union wl_argument { int32 i; uint32 u; uint32 f; char *s; void *o; uint32 n; wl_array *a; int32 h; }')
+lib.union('union wl_argument { int32 i; uint32 u; int32 f; char *s; void *o; uint32 n; wl_array *a; int32 h; }')
 lib.array('wl_argument[] ArgsArray')
 lib.struct('struct wl_message { char *name; char *signature; void** types; }')
 lib.struct('struct wl_interface { char *name; int version; int method_count; void* methods; int event_count; void* events; }')
