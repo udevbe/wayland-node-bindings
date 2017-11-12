@@ -8,6 +8,7 @@ const WlArgumentArray = fastcall.ArrayType(native.unions.wl_argument.type)
 const PointerArray = fastcall.ArrayType('pointer')
 const Resource = require('./Resource')
 const Wrapper = require('./Wrapper')
+const WlFixed = require('./WlFixed')
 
 const namespace = require('./namespace')
 
@@ -84,7 +85,7 @@ class Dispatcher {
 
   'f' (wlArg) {
     const fixedRaw = wlArg.f
-    return fixedRaw / 256.0
+    return new WlFixed(fixedRaw)
   }
 
   'h' (wlArg) {
