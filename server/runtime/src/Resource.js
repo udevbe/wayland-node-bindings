@@ -128,7 +128,7 @@ class Resource {
   }
 
   onDestroy () {
-    return this._destroyResolve
+    return this._destroyPromise
   }
 
   /**
