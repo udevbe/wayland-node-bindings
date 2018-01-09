@@ -22,11 +22,11 @@ module.exports = {
   },
 
   _intOptional: (arg) => {
-    return this._uintOptional(arg)
+    return new WlArgument({i: arg === null ? null : arg})
   },
 
   _int: (arg) => {
-    return this._uint(arg)
+    return new WlArgument({i: arg})
   },
 
   _fixedOptional: (arg) => {
