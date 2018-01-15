@@ -28,7 +28,6 @@
   },
   "dependencies": {
     "fastcall": "^0.2.4",
-    "ffi": "^2.2.0",
     "ref-struct": "^1.1.0",
     "require-directory": "^2.1.1"
   }
