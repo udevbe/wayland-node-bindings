@@ -4,8 +4,9 @@ const native = require('./native')
 const WlArrayStruct = native.structs.wl_array.type
 
 class WlArray {
-  static create (buffer) {
-    return new WlArray(new WlArrayStruct({size: buffer.byteLength, alloc: buffer.byteLength, data: buffer}))
+  static create (arrayBuffer) {
+    const wlArrayData = Buffer.from(arrayBuffer)
+    return new WlArray(new WlArrayStruct({size: arrayBuffer.byteLength, alloc: arrayBuffer.byteLength, data: wlArrayData}))
   }
 
   constructor (struct) {
