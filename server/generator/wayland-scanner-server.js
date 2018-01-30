@@ -58,7 +58,7 @@ wfg.ProtocolParser = class {
     return {
       signature: optional ? '?n' : 'n',
       jsType: '*',
-      marshallGen: optional ? util.format('namespace._newObjectOptional(%s)', argName) : util.format('namespace._newObject(%s)', argName)
+      marshallGen: optional ? util.format('namespace._objectOptional(%s)', argName) : util.format('namespace._object(%s)', argName)
     }
   }
 
