@@ -114,7 +114,12 @@ class Dispatcher {
   }
 
   's' (wlArg) {
-    return wlArg.s.readCString(0)
+    const stringPtr = wlArg.s
+    if (stringPtr.isNull()) {
+      return null
+    } else {
+      return stringPtr.readCString(0)
+    }
   }
 
   'a' (wlArg) {
