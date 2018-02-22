@@ -132,8 +132,9 @@ Client._destroyPtr = native.interface.wl_notify_func_t((listener, data) => {
   listener.type = WlWrapper
   const wlWrapper = listener.deref()
   const client = wlWrapper.jsobject.readObject(0)
-  client._destroyResolve(client)
   const wrapper = wlWrapper.jswrapper.readObject(0)
+  delete client.ptr
+  client._destroyResolve(client)
   wrapper.unref()
 })
 

@@ -175,8 +175,9 @@ Display._destroyPtr = native.interface.wl_notify_func_t((listener, data) => {
   listener.type = WlWrapper
   const wlWrapper = listener.deref()
   const display = wlWrapper.jsobject.readObject(0)
-  display._destroyResolve(display)
   const wrapper = wlWrapper.jswrapper.readObject(0)
+  delete display.ptr
+  display._destroyResolve(display)
   wrapper.unref()
 })
 

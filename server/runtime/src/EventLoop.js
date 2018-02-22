@@ -96,8 +96,9 @@ EventLoop._destroyPtr = native.interface.wl_notify_func_t((listener, data) => {
   listener.type = WlWrapper
   const wlWrapper = listener.deref()
   const eventLoop = wlWrapper.jsobject.readObject(0)
-  eventLoop._destroyResolve(eventLoop)
   const wrapper = wlWrapper.jswrapper.readObject(0)
+  delete eventLoop.ptr
+  eventLoop._destroyResolve(eventLoop)
   wrapper.unref()
 })
 
