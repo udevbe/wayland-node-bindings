@@ -133,7 +133,7 @@ wfg.ProtocolParser = class {
             const optional = arg.$.hasOwnProperty('allow-null') && (arg.$['allow-null'] === 'true')
             const argType = arg.$.type
 
-            if (argType === 'object') {
+            if (argType === 'object' && upperCamelCase(arg.$.interface) !== className) {
               reqRequires.push(util.format('require(\'./%s\')\n', upperCamelCase(arg.$.interface)))
             }
 
@@ -172,7 +172,7 @@ wfg.ProtocolParser = class {
     return signature
   }
 
-  _parseMessageTypes (requires, body, message) {
+  _parseMessageTypes (requires, body, message, itfName) {
     if (message.hasOwnProperty('arg')) {
       const args = message.arg
       let firstArg = true
@@ -184,7 +184,9 @@ wfg.ProtocolParser = class {
         const argType = arg.$.type
         if ((argType === 'object' || argType === 'new_id') && arg.$.hasOwnProperty('interface')) {
           const argItfName = upperCamelCase(arg.$.interface)
-          requires.push(util.format('const %s = require(\'./%s\')\n', argItfName, argItfName))
+          if(argItfName !== itfName){
+            requires.push(util.format('const %s = require(\'./%s\')\n', argItfName, argItfName))
+          }
           body.push(util.format('      %s.interface_.ptr', argItfName))
         } else {
           body.push('      NULL')
@@ -193,26 +195,26 @@ wfg.ProtocolParser = class {
     }
   }
 
-  _parseItfReqDef (requires, body, itfRequest, opcode, itfVersion, sinceVersion) {
+  _parseItfReqDef (requires, body, itfRequest, opcode, itfVersion, sinceVersion, itfName) {
     const eventName = itfRequest.$.name
 
     body.push('  new WlMessage({\n')
     body.push(util.format('    name: fastcall.makeStringBuffer(\'%s\'),\n', eventName))
     body.push(util.format('    signature: fastcall.makeStringBuffer(\'%d%s\'),\n', sinceVersion, this._signature(itfRequest)))
     body.push('    types: new PointerArray([\n')
-    this._parseMessageTypes(requires, body, itfRequest)
+    this._parseMessageTypes(requires, body, itfRequest, itfName)
     body.push('\n    ]).buffer\n')
     body.push('  })')
   }
 
-  _parseItfEventDef (requires, body, itfEvent, opcode, itfVersion, sinceVersion) {
+  _parseItfEventDef (requires, body, itfEvent, opcode, itfVersion, sinceVersion, itfName) {
     const eventName = itfEvent.$.name
 
     body.push('  new WlMessage({\n')
     body.push(util.format('    name: fastcall.makeStringBuffer(\'%s\'),\n', eventName))
     body.push(util.format('    signature: fastcall.makeStringBuffer(\'%d%s\'),\n', sinceVersion, this._signature(itfEvent)))
     body.push('    types: new PointerArray([\n')
-    this._parseMessageTypes(requires, body, itfEvent)
+    this._parseMessageTypes(requires, body, itfEvent, itfName)
     body.push('\n    ]).buffer\n')
     body.push('  })')
   }
@@ -450,7 +452,10 @@ wfg.ProtocolParser = class {
     body.push(util.format('%s.name = \'%s\'\n\n', itfName, protocolItf.$.name))
 
     // wayland interface declarations
-    body.push(util.format('%s.interface_ = Interface.create(\'%s\', %d, [\n', itfName, protocolItf.$.name, itfVersion))
+    // allocate memory
+    body.push(util.format('%s.interface_ = Interface.create(\'%s\', %d)\n', itfName, protocolItf.$.name, itfVersion))
+    // init memory
+    body.push(util.format('%s.interface_.init([\n', itfName))
     if (protocolItf.hasOwnProperty('request')) {
       const itfRequests = protocolItf.request
       for (let j = 0; j < itfRequests.length; j++) {
@@ -459,7 +464,7 @@ wfg.ProtocolParser = class {
         if (j > 0) {
           body.push(',\n')
         }
-        this._parseItfReqDef(requires, body, itfRequests[j], j, itfVersion, sinceVersion)
+        this._parseItfReqDef(requires, body, itfRequests[j], j, itfVersion, sinceVersion, itfName)
       }
     }
 
@@ -472,7 +477,7 @@ wfg.ProtocolParser = class {
         if (j > 0) {
           body.push(',\n')
         }
-        this._parseItfEventDef(requires, body, itfEvents[j], j, itfVersion, sinceVersion)
+        this._parseItfEventDef(requires, body, itfEvents[j], j, itfVersion, sinceVersion, itfName)
       }
     }
 

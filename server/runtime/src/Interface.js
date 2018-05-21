@@ -8,27 +8,33 @@ const WlInterface = native.structs.wl_interface.type
 const WlMessageArray = fastcall.ArrayType(native.structs.wl_message.type)
 
 class Interface {
-  static create (name, version, methods, events) {
+  static create (name, version) {
     const namePtr = fastcall.makeStringBuffer(name)
-    return new Interface(new WlInterface({
-      name: namePtr,
-      version: version,
-      method_count: methods.length,
-      methods: new WlMessageArray(methods).buffer,
-      event_count: events.length,
-      events: new WlMessageArray(events).buffer
-    }), namePtr, methods, events)
+    return new Interface(new WlInterface(), namePtr, version)
   }
 
-  constructor (struct, namePtr, methods, events) {
+  constructor (struct, namePtr, version) {
     this._struct = struct
     this._namePtr = namePtr
-    this._methods = methods
-    this._events = events
+    this._version = version
+    this._methods = null
+    this._events = null
   }
 
   get ptr () {
     return this._struct.ref()
+  }
+
+  init (methods, events) {
+    this._methods = methods
+    this._events = events
+
+    this._struct.name = this._namePtr
+    this._struct.version = this._version
+    this._struct.method_count = this._methods.length
+    this._struct.methods = new WlMessageArray(this._methods).buffer
+    this._struct.event_count = this._events.length
+    this._struct.events = new WlMessageArray(this._events).buffer
   }
 }
 
